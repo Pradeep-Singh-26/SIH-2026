@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<case>
+    <casedef>
+        <constantsdef>
+            <gravity x="0" y="0" z="-9.81" comment="Gravitational acceleration" />
+            <rhop0 value="1000" comment="Reference fluid density" />
+            <h value="0.05" comment="Smoothing length parameter" />
+            <b value="1000000" comment="Equation of state stiffness constant" />
+            <gamma value="7" comment="Tait equation polytropic index" />
+        </constantsdef>
+        <geometry>
+            <definition dp="0.1" comment="Initial inter-particle distance (m)">
+                <pointmin x="0" y="0" z="0" />
+                <pointmax x="500" y="200" z="80" />
+            </definition>
+            <commands>
+                <mainlist>
+                    <!-- Reservoir Fluid Block -->
+                    <setdrawmode mode="solid" />
+                    <setmkfluid mk="1" />
+                    <drawbox>
+                        <boxfill>solid</boxfill>
+                        <point x="10" y="10" z="0" />
+                        <size x="120" y="180" z="47.0" />
+                    </drawbox>
+                    <!-- Dam Crest Structure -->
+                    <setmkbound mk="10" />
+                    <drawbox>
+                        <boxfill>solid</boxfill>
+                        <point x="130" y="0" z="0" />
+                        <size x="15" y="200" z="55" />
+                    </drawbox>
+                </mainlist>
+            </commands>
+        </geometry>
+    </casedef>
+    <execution>
+        <parameters>
+            <parameter key="TimeMax" value="28800.0" comment="Simulation end time" />
+            <parameter key="TimeOut" value="60.0" comment="Particle dump interval" />
+            <parameter key="StepAlgorithm" value="2" comment="Verlet algorithm" />
+            <parameter key="ViscoTreatment" value="1" comment="Artificial viscosity" />
+            <parameter key="Visco" value="0.02" comment="Alpha artificial viscosity" />
+        </parameters>
+    </execution>
+</case>

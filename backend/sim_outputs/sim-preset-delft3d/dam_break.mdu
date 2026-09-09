@@ -1,0 +1,28 @@
+# Delft3D-FM Master Definition File
+[geometry]
+NetFile                     = dam_mesh_net.nc
+BathymetryFile              = ghataprabha_dem.xyz
+DryPointsFile               = drypoints.xyz
+
+[numerics]
+CFLMax                      = 0.70
+AdvectionMethod             = 1
+LimiterMethod               = 1
+
+[physics]
+Unsorted                    = 0
+Gravity                     = 9.81
+WaterDensity                = 1000.0
+RoughnessType               = Manning
+RoughnessValue              = 0.035
+
+[time]
+RefDate                     = 20260901
+Tunit                       = M
+TStart                      = 0.0
+TStop                       = 480.0
+DtUser                      = 900.0
+DtMax                       = 30.0
+
+[external forcing]
+ExtForceFile                = dam_inflow.ext
