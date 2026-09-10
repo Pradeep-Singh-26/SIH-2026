@@ -5,16 +5,25 @@
 
 ## 🧭 1. Getting Started
 
-When you launch the application (via `http://localhost:3000` or local dev `http://localhost:5173`), you are greeted by the **Dam Break Inundation Modelling Dashboard**.
+When you launch the application (via `http://localhost:3000` or local dev `http://localhost:5173`), you are greeted by the streamlined, spacious **Dam Break Inundation Modelling Dashboard**.
 
-The top navigation bar provides:
-- **System Status Indicator**: Displays real-time backend connection status, active solver engine, and demo mode indicator.
-- **View Switcher Tabs**:
-  - `2D GIS Map`: Interactive Leaflet map showing spatial flood propagation.
-  - `3D Fluid Shock`: Three.js WebGL simulation showing violent wave surge dynamics.
-  - `HADR Impact`: Operational impact matrix and critical asset status.
-  - `Scenario Compare`: Side-by-side comparative analysis of different dam break scenarios.
-- **Export Menu**: Instant download of simulation outputs as ESRI Shapefiles, Google Earth KML, or GeoJSON.
+### 1.1 Streamlined Top Navigation Bar
+- **Brand & Panel Toggle**: Brand identity, SIH26161 badge, and quick panel expand/collapse trigger.
+- **Centered View Switcher**: Instant switching between `🗺️ 2D Tactical GIS` and `💧 3D Fluid Shock`.
+- **Status & Quick Actions**: Live engine badge (`SPH READY` / `DELFT3D CONNECTED`), primary `Export GIS` button, theme toggle (light/dark), sound mute, fullscreen, and operator guide.
+
+### 1.2 Left Command Activity Rail (64px)
+The vertical command dock provides fast access to core modules without crowding the screen:
+- ⚙️ **Scenario Setup**: Opens the breach parameter configuration drawer (dam presets, overtopping/piping, breach dimensions).
+- 📊 **HADR Impact**: Opens disaster analytics (USACE casualty reduction, infrastructure damage, and high-ground relief centers).
+- ⚖️ **Model Compare**: Opens side-by-side comparative analysis of Delft3D Flexible Mesh vs DualSPHysics.
+- 🛰️ **Sentinel-1 SAR**: Opens the Copernicus C-band SAR satellite radar framework for Google Earth Engine.
+- 📥 **Export GIS**: 1-click downloads for ESRI Shapefile ZIP, Google Earth KML, and GeoJSON.
+- ◫ **Split View Toggle**: For multi-monitor or ultra-wide displays, toggles between the spacious single-drawer layout and dual-panel split deck.
+- 📖 **System Guide**: Opens technical architecture and operational specifications.
+
+### 1.3 Spacious Sliding Drawer & Expansive Map
+- **1-Click Drawer Collapse**: Hiding the drawer allows the 2D GIS map or 3D fluid shock wave to expand to **100% full screen width**, giving operators maximum situational awareness.
 
 ---
 

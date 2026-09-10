@@ -145,8 +145,6 @@ docker run -d -p 8000:8000 --name dam-flood dam-flood-unified
 
 ---
 
-## 📚 Complete Project Documentary & Documentation Library
-
 ## 📚 Comprehensive Documentation Suite
 
 Exhaustive engineering documentation, scientific formulations, and narrative documentary chapters are available in the [`documentation/`](documentation/README.md) directory:
@@ -159,6 +157,7 @@ Exhaustive engineering documentation, scientific formulations, and narrative doc
 - 🔌 [**05. API Reference Specification**](documentation/05_API_REFERENCE.md): Complete OpenAPI / REST specification with request/response schemas and curl examples.
 - 🐳 [**06. Docker Deployment Guide**](documentation/06_DOCKER_DEPLOYMENT.md): Containerization manual, multi-stage builds, Docker Hub publishing (`docker push`), and troubleshooting.
 - 📖 [**07. User Manual & Guide**](documentation/07_USER_MANUAL.md): Operator walkthrough for 2D GIS maps, 3D fluid shock wave viewer, and GIS exports.
+- 📊 [**08. Pitch Deck & Presentation Guide**](documentation/08_PITCH_DECK_AND_PRESENTATION_GUIDE.md): 13-slide pitch presentation blueprint, speaker scripts, visual layouts, jury Q&A defense, and AI prompt template.
 
 ---
 

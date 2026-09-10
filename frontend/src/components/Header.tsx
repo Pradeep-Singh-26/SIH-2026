@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Map, SplitSquareVertical, Satellite, Download,
-  Volume2, VolumeX, Maximize, Minimize, HelpCircle, Sun, Moon
+  Box, Map, Download, Volume2, VolumeX, Maximize, Minimize,
+  HelpCircle, Sun, Moon, PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import { soundEffects } from '../services/soundEffects';
 
@@ -10,12 +10,14 @@ interface HeaderProps {
   isDemoData: boolean;
   activeView: '3D_SIMULATION' | '2D_GIS';
   onViewChange: (view: '3D_SIMULATION' | '2D_GIS') => void;
-  onOpenComparison: () => void;
-  onOpenGee: () => void;
+  onOpenComparison?: () => void;
+  onOpenGee?: () => void;
   onOpenExport: () => void;
   onOpenGuide: () => void;
   theme?: 'light' | 'dark';
   onToggleTheme?: () => void;
+  isDrawerOpen?: boolean;
+  onToggleDrawer?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -23,12 +25,12 @@ export const Header: React.FC<HeaderProps> = ({
   isDemoData,
   activeView,
   onViewChange,
-  onOpenComparison,
-  onOpenGee,
   onOpenExport,
   onOpenGuide,
   theme = 'light',
-  onToggleTheme
+  onToggleTheme,
+  isDrawerOpen,
+  onToggleDrawer
 }) => {
   const [isMuted, setIsMuted] = useState<boolean>(soundEffects.isMuted());
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -64,75 +66,69 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="navbar">
+      {/* Left: Clean Brand & Panel Toggle */}
       <div className="brand-section">
+        {onToggleDrawer && (
+          <button
+            className="btn-icon rail-panel-trigger"
+            onClick={() => {
+              soundEffects.playClickSound();
+              onToggleDrawer();
+            }}
+            title={isDrawerOpen ? 'Close Side Panel (Expands Map)' : 'Open Side Panel'}
+            aria-label="Toggle Side Panel"
+          >
+            {isDrawerOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
+          </button>
+        )}
+
         <img
           src="/logo.png"
           alt="Hydro-Breach Logo"
           style={{
-            height: '44px',
+            height: '40px',
             width: 'auto',
-            maxHeight: '44px',
+            maxHeight: '40px',
             objectFit: 'contain',
             display: 'block',
             userSelect: 'none'
           }}
         />
-        <div>
-          <div className="brand-title">HYDRO-BREACH SIMULATOR</div>
+        <div className="brand-text-container">
+          <div className="brand-title">HYDRO-BREACH</div>
           <div className="brand-subtitle">
-            <span>3D SPH Fluid & 2D Delft3D-FM Platform</span>
+            <span className="brand-subtitle-text">2D/3D Hydrodynamic Platform</span>
             <span className="badge-sih">SIH26161</span>
           </div>
         </div>
       </div>
 
-      {/* View Switcher: 3D SPH Fluid vs 2D Tactical GIS */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          background: 'var(--bg-surface-elevated)',
-          padding: '0.22rem',
-          borderRadius: '30px',
-          border: '1px solid var(--border-subtle)',
-          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)'
-        }}
-      >
+      {/* Center: Spacious View Switcher Pill */}
+      <div className="view-switcher-pill">
         <button
-          className={`btn ${activeView === '3D_SIMULATION' ? 'btn-primary' : 'btn-secondary'}`}
-          style={{
-            padding: '0.42rem 1.05rem',
-            borderRadius: '20px',
-            fontSize: '0.8rem',
-            boxShadow: activeView === '3D_SIMULATION' ? '0 2px 10px var(--cyan-glow)' : 'none'
-          }}
-          onClick={() => {
-            soundEffects.playClickSound();
-            onViewChange('3D_SIMULATION');
-          }}
-        >
-          <Box size={15} />
-          <span>3D Water Flow</span>
-        </button>
-
-        <button
-          className={`btn ${activeView === '2D_GIS' ? 'btn-primary' : 'btn-secondary'}`}
-          style={{
-            padding: '0.42rem 1.05rem',
-            borderRadius: '20px',
-            fontSize: '0.8rem',
-            boxShadow: activeView === '2D_GIS' ? '0 2px 10px var(--cyan-glow)' : 'none'
-          }}
+          className={`view-pill-btn ${activeView === '2D_GIS' ? 'active' : ''}`}
           onClick={() => {
             soundEffects.playClickSound();
             onViewChange('2D_GIS');
           }}
         >
-          <Map size={15} />
-          <span>2D Flood Map</span>
+          <Map size={16} />
+          <span>2D Tactical GIS</span>
+        </button>
+
+        <button
+          className={`view-pill-btn ${activeView === '3D_SIMULATION' ? 'active' : ''}`}
+          onClick={() => {
+            soundEffects.playClickSound();
+            onViewChange('3D_SIMULATION');
+          }}
+        >
+          <Box size={16} />
+          <span>3D Fluid Shock</span>
         </button>
       </div>
 
+      {/* Right: Status Pill, Primary Action & Compact Utility Group */}
       <div className="nav-actions">
         {/* Mode Indicator Badge */}
         <div className={`mode-badge ${isDemoData ? 'mock' : 'real'}`}>
@@ -140,72 +136,72 @@ export const Header: React.FC<HeaderProps> = ({
           <span>{isDemoData ? 'SPH ENGINE READY' : 'DELFT3D CONNECTED'}</span>
         </div>
 
-        <button
-          className="btn btn-sph"
-          onClick={() => { soundEffects.playClickSound(); onOpenComparison(); }}
-          title="Compare Delft3D vs SPH hydrodynamic results"
-        >
-          <SplitSquareVertical size={16} />
-          <span>Model Comparison</span>
-        </button>
-
-        <button
-          className="btn btn-secondary"
-          onClick={() => { soundEffects.playClickSound(); onOpenGee(); }}
-          title="Near real-time open-source Sentinel-1 SAR framework"
-        >
-          <Satellite size={16} />
-          <span>Sentinel-1 SAR</span>
-        </button>
-
+        {/* Primary Export Button */}
         <button
           className="btn btn-primary"
-          onClick={() => { soundEffects.playClickSound(); onOpenExport(); }}
+          onClick={() => {
+            soundEffects.playClickSound();
+            onOpenExport();
+          }}
           title="Export simulation layers in SHP / KML / GeoJSON"
         >
-          <Download size={16} />
+          <Download size={15} />
           <span>Export GIS</span>
         </button>
 
-        {/* Light / Dark Mode Toggle Button */}
-        {onToggleTheme && (
+        <div className="nav-utility-group">
+          {/* Light / Dark Mode Toggle Button */}
+          {onToggleTheme && (
+            <button
+              className="btn-icon"
+              onClick={() => {
+                soundEffects.playClickSound();
+                onToggleTheme();
+              }}
+              title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+              aria-label="Toggle Theme"
+            >
+              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} style={{ color: '#f59e0b' }} />}
+            </button>
+          )}
+
+          {/* Audio Mute Toggle */}
           <button
             className="btn-icon"
-            onClick={() => { soundEffects.playClickSound(); onToggleTheme(); }}
-            title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+            onClick={handleToggleMute}
+            title={isMuted ? 'Unmute Audio & Sirens' : 'Mute Audio & Sirens'}
+            aria-label="Toggle Sound"
+            style={{ color: isMuted ? 'var(--text-muted)' : 'var(--cyan-primary)' }}
           >
-            {theme === 'light' ? <Moon size={16} /> : <Sun size={16} style={{ color: '#f59e0b' }} />}
+            {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
           </button>
-        )}
 
-        {/* Audio Mute Toggle */}
-        <button
-          className="btn-icon"
-          onClick={handleToggleMute}
-          title={isMuted ? 'Unmute Audio & Sirens (Press M)' : 'Mute Audio & Sirens (Press M)'}
-          style={{ color: isMuted ? 'var(--text-muted)' : 'var(--cyan-primary)' }}
-        >
-          {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-        </button>
+          {/* Fullscreen Toggle */}
+          <button
+            className="btn-icon"
+            onClick={toggleFullscreen}
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+            aria-label="Toggle Fullscreen"
+          >
+            {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+          </button>
 
-        {/* Fullscreen Toggle */}
-        <button
-          className="btn-icon"
-          onClick={toggleFullscreen}
-          title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-        >
-          {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
-        </button>
-
-        {/* System Guide / Quick Specs Modal */}
-        <button
-          className="btn-icon"
-          onClick={() => { soundEffects.playClickSound(); onOpenGuide(); }}
-          title="System Architecture & User Guide"
-        >
-          <HelpCircle size={16} style={{ color: 'var(--cyan-primary)' }} />
-        </button>
+          {/* System Guide / Quick Specs Modal */}
+          <button
+            className="btn-icon"
+            onClick={() => {
+              soundEffects.playClickSound();
+              onOpenGuide();
+            }}
+            title="System Architecture & User Guide"
+            aria-label="System Guide"
+          >
+            <HelpCircle size={16} style={{ color: 'var(--cyan-primary)' }} />
+          </button>
+        </div>
       </div>
     </header>
   );
 };
+
+export default Header;

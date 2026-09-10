@@ -24,6 +24,7 @@ Whether you are an evaluator, hydrodynamic engineer, disaster management officia
 | [05_API_REFERENCE.md](./05_API_REFERENCE.md) | **FastAPI REST API Specification** | Complete interactive API endpoints, request/response schemas, JSON payloads, and error codes. |
 | [06_DOCKER_DEPLOYMENT.md](./06_DOCKER_DEPLOYMENT.md) | **Containerization & Docker Hub Guide** | Step-by-step instructions for running via Docker Compose, unified Dockerfile, and publishing to Docker Hub (`docker push`). |
 | [07_USER_MANUAL.md](./07_USER_MANUAL.md) | **Operator's Manual & User Guide** | Guided tour of the interactive dashboard: 2D GIS layer controls, 3D fluid wave surge, scenario comparison, and GIS data export. |
+| [08_PITCH_DECK_AND_PRESENTATION_GUIDE.md](./08_PITCH_DECK_AND_PRESENTATION_GUIDE.md) | **Pitch Deck & Presentation Guide** | 13-slide pitch presentation blueprint, speaker scripts, visual layouts, jury Q&A defense, and AI prompt template. |
 
 ---
 

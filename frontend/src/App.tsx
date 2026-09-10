@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from './components/Header';
+import { SidebarRail, type DrawerTab } from './components/SidebarRail';
+import { SpaciousDrawer } from './components/SpaciousDrawer';
 import { ScenarioPanel } from './components/ScenarioPanel';
 import { MapViewer } from './components/MapViewer';
 import { TimelineController } from './components/TimelineController';
@@ -41,6 +43,15 @@ export const App: React.FC = () => {
   const [isGeeOpen, setIsGeeOpen] = useState<boolean>(false);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
 
+  // Spacious Layout & Drawer State
+  const [drawerTab, setDrawerTab] = useState<DrawerTab>('SCENARIO');
+  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(true);
+  const [isDualSplit, setIsDualSplit] = useState<boolean>(false);
+
+  // Dual-split legacy collapsible sidebar states (for ultra-wide mode)
+  const [isLeftCollapsed, setIsLeftCollapsed] = useState<boolean>(false);
+  const [isRightCollapsed, setIsRightCollapsed] = useState<boolean>(false);
+
   // Theme Management (Light mode default)
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('hydro_theme') as 'light' | 'dark') || 'light';
@@ -54,10 +65,6 @@ export const App: React.FC = () => {
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
   };
-
-  // 2D GIS Collapsible sidebar states
-  const [isLeftCollapsed, setIsLeftCollapsed] = useState<boolean>(false);
-  const [isRightCollapsed, setIsRightCollapsed] = useState<boolean>(false);
 
   // Toast Notification System
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -141,7 +148,7 @@ export const App: React.FC = () => {
     }
   };
 
-  // Dynamic grid column template based on collapsed sidebars
+  // Dynamic grid template for dual split mode
   const getGridTemplate = () => {
     const leftCol = isLeftCollapsed ? '48px' : '360px';
     const rightCol = isRightCollapsed ? '48px' : '390px';
@@ -150,78 +157,141 @@ export const App: React.FC = () => {
 
   return (
     <div className="app-container">
-      {/* Top Navigation */}
+      {/* Top Streamlined Navigation */}
       <Header
         mode={health?.mode || 'MOCK'}
         isDemoData={health ? health.is_demo_data : true}
         activeView={activeView}
         onViewChange={setActiveView}
-        onOpenComparison={() => setIsComparisonOpen(true)}
-        onOpenGee={() => setIsGeeOpen(true)}
         onOpenExport={() => setIsExportOpen(true)}
         onOpenGuide={() => setIsGuideOpen(true)}
         theme={theme}
         onToggleTheme={toggleTheme}
+        isDrawerOpen={isDrawerOpen}
+        onToggleDrawer={() => setIsDrawerOpen(!isDrawerOpen)}
       />
 
-      {/* Main Workspace: 3D Three.js SPH or 2D Tactical GIS */}
-      {activeView === '3D_SIMULATION' ? (
-        <div style={{ flex: 1, position: 'relative', width: '100%', height: 'calc(100vh - 65px)', overflow: 'hidden' }}>
-          <ThreeSphSimulation
-            durationMinutes={sphDurationMinutes}
-            onDurationChange={setSphDurationMinutes}
-            simulation={simulation}
-            onNotify={addToast}
-            theme={theme}
-          />
-        </div>
-      ) : (
-        <>
-          <main
-            className="dashboard-grid"
-            style={{
-              gridTemplateColumns: getGridTemplate(),
-              transition: 'grid-template-columns 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
-            }}
-          >
-            {/* Left: Dam Selector & Breach Configuration Panel */}
-            <ScenarioPanel
+      {/* Main Spacious Workspace */}
+      <div className="app-workspace">
+        {/* Left Vertical Activity Rail */}
+        <SidebarRail
+          activeTab={drawerTab}
+          onSelectTab={(tab) => {
+            setDrawerTab(tab);
+            setIsDrawerOpen(true);
+          }}
+          isDrawerOpen={isDrawerOpen}
+          onToggleDrawer={() => setIsDrawerOpen(!isDrawerOpen)}
+          isDualSplit={isDualSplit}
+          onToggleDualSplit={() => setIsDualSplit(!isDualSplit)}
+          onOpenComparison={() => setIsComparisonOpen(true)}
+          onOpenGee={() => setIsGeeOpen(true)}
+          onOpenExport={() => setIsExportOpen(true)}
+          onOpenGuide={() => setIsGuideOpen(true)}
+        />
+
+        {/* Content Area: Dual Split Mode vs Spacious Single Drawer Mode */}
+        {isDualSplit && activeView === '2D_GIS' ? (
+          /* Dual Split View (Both panels visible flanking the map) */
+          <div className="split-dashboard-wrapper">
+            <main
+              className="dashboard-grid"
+              style={{
+                gridTemplateColumns: getGridTemplate(),
+                transition: 'grid-template-columns 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                width: '100%',
+                height: '100%'
+              }}
+            >
+              <ScenarioPanel
+                dam={dam}
+                isRunning={isRunning}
+                onRunSimulation={handleRunSimulation}
+                isCollapsed={isLeftCollapsed}
+                onToggleCollapse={() => setIsLeftCollapsed(!isLeftCollapsed)}
+              />
+
+              <div className="map-and-timeline-wrapper">
+                <div style={{ flex: 1, position: 'relative', width: '100%', height: 'calc(100% - 75px)', overflow: 'hidden' }}>
+                  <MapViewer
+                    dam={dam}
+                    riverGeoJson={riverGeoJson}
+                    infraGeoJson={infraGeoJson}
+                    terrainGeoJson={terrainGeoJson}
+                    layersData={layersData}
+                    isochronesData={isochronesData}
+                    currentTimestep={currentTimestep}
+                    theme={theme}
+                  />
+                </div>
+                <TimelineController
+                  timesteps={timesteps}
+                  currentTimestep={currentTimestep}
+                  onTimestepChange={setCurrentTimestep}
+                />
+              </div>
+
+              <ImpactPanel
+                simulation={simulation}
+                currentTimestep={currentTimestep}
+                isCollapsed={isRightCollapsed}
+                onToggleCollapse={() => setIsRightCollapsed(!isRightCollapsed)}
+              />
+            </main>
+          </div>
+        ) : (
+          /* New Spacious Mode (Unified sliding drawer + huge expansive map or 3D canvas) */
+          <>
+            <SpaciousDrawer
+              activeTab={drawerTab}
+              onSelectTab={setDrawerTab}
+              isOpen={isDrawerOpen}
+              onClose={() => setIsDrawerOpen(false)}
+              isDualSplit={isDualSplit}
+              onToggleDualSplit={() => setIsDualSplit(!isDualSplit)}
               dam={dam}
               isRunning={isRunning}
               onRunSimulation={handleRunSimulation}
-              isCollapsed={isLeftCollapsed}
-              onToggleCollapse={() => setIsLeftCollapsed(!isLeftCollapsed)}
-            />
-
-            {/* Center: Interactive Geospatial Leaflet Map */}
-            <MapViewer
-              dam={dam}
-              riverGeoJson={riverGeoJson}
-              infraGeoJson={infraGeoJson}
-              terrainGeoJson={terrainGeoJson}
-              layersData={layersData}
-              isochronesData={isochronesData}
-              currentTimestep={currentTimestep}
-              theme={theme}
-            />
-
-            {/* Right: Hydrograph, KPIs & HADR Impact Panel */}
-            <ImpactPanel
               simulation={simulation}
               currentTimestep={currentTimestep}
-              isCollapsed={isRightCollapsed}
-              onToggleCollapse={() => setIsRightCollapsed(!isRightCollapsed)}
             />
-          </main>
 
-          {/* Bottom: Timeline Playback Scrubber for 2D GIS */}
-          <TimelineController
-            timesteps={timesteps}
-            currentTimestep={currentTimestep}
-            onTimestepChange={setCurrentTimestep}
-          />
-        </>
-      )}
+            <div className="main-view-container">
+              {activeView === '3D_SIMULATION' ? (
+                <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+                  <ThreeSphSimulation
+                    durationMinutes={sphDurationMinutes}
+                    onDurationChange={setSphDurationMinutes}
+                    simulation={simulation}
+                    onNotify={addToast}
+                    theme={theme}
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="map-view-wrapper">
+                    <MapViewer
+                      dam={dam}
+                      riverGeoJson={riverGeoJson}
+                      infraGeoJson={infraGeoJson}
+                      terrainGeoJson={terrainGeoJson}
+                      layersData={layersData}
+                      isochronesData={isochronesData}
+                      currentTimestep={currentTimestep}
+                      theme={theme}
+                    />
+                  </div>
+                  <TimelineController
+                    timesteps={timesteps}
+                    currentTimestep={currentTimestep}
+                    onTimestepChange={setCurrentTimestep}
+                  />
+                </>
+              )}
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Modals */}
       <ComparisonModal

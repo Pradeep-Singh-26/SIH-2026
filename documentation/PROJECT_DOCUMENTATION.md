@@ -24,6 +24,7 @@
 6. [Satellite Remote Sensing & Earth Observation (GEE)](#6-satellite-remote-sensing--earth-observation-gee)
 7. [Docker Containerization & Production Deployment](#7-docker-containerization--production-deployment)
 8. [Operator Manual & Feature Walkthrough](#8-operator-manual--feature-walkthrough)
+9. [Pitch Deck & Hackathon Presentation Guide](#9-pitch-deck--hackathon-presentation-guide)
 
 ---
 
@@ -229,3 +230,16 @@ docker run -d -p 8000:8000 pradeep26singh08/dam-flood-simulation:latest
    - Review population at risk, estimated casualties, inundated farmland, and evacuation routes.
 4. **Export Menu**:
    - Export GIS layers as ESRI Shapefiles (`.zip`), Google Earth (`.kml`), or GeoJSON.
+
+---
+
+## 9. Pitch Deck & Hackathon Presentation Guide
+
+A complete 13-slide pitch presentation blueprint, visual layouts, metric pills, speaker scripts, and jury Q&A defense strategies are documented in:
+- 📊 [**Chapter 08: Pitch Deck & Presentation Guide**](./08_PITCH_DECK_AND_PRESENTATION_GUIDE.md)
+
+### Key Pitch Deck Highlights:
+- **Slide 1–4**: Problem urgency, limitations of static 1D HEC-RAS models, and the Hidkal Dam 44.8 km study corridor.
+- **Slide 5–7**: The three scientific engines: Froehlich geotechnical breach calculations, Delft3D Flexible Mesh 2D Shallow Water Equations, and DualSPHysics 3D Lagrangian particles.
+- **Slide 8–10**: Disaster response: USACE Graham casualty reduction (15% down to <0.2%), infrastructure failure sequences, safe high-ground relief centers, and Sentinel-1 SAR cloud-penetrating radar validation.
+- **Slide 11–13**: Dockerized microservices stack, tactical GIS exports, and nationwide scalability across India's 5,300+ large dams.
