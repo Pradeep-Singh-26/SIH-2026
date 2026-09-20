@@ -1,0 +1,328 @@
+[
+  {
+    "id": "dem-6d42b1fe",
+    "scenario_name": "Test Ghataprabha DEM Breach Analysis",
+    "dam_id": "custom-bd8900",
+    "engine_type": "DELFT3D_FM",
+    "mode": "REAL",
+    "is_demo_data": false,
+    "peak_discharge_m3s": 76258.6,
+    "max_depth_m": 40.0,
+    "max_velocity_ms": 11.5,
+    "time_to_arrival_gokak_hr": 1.83,
+    "timesteps": [
+      {
+        "time_hr": 0.5,
+        "inundated_area_km2": 13.32,
+        "max_depth_m": 28.41,
+        "max_velocity_ms": 9.95
+      },
+      {
+        "time_hr": 1.0,
+        "inundated_area_km2": 27.79,
+        "max_depth_m": 31.84,
+        "max_velocity_ms": 10.74
+      },
+      {
+        "time_hr": 2.0,
+        "inundated_area_km2": 62.37,
+        "max_depth_m": 40.0,
+        "max_velocity_ms": 11.5
+      },
+      {
+        "time_hr": 3.0,
+        "inundated_area_km2": 69.28,
+        "max_depth_m": 38.56,
+        "max_velocity_ms": 11.5
+      },
+      {
+        "time_hr": 4.0,
+        "inundated_area_km2": 69.28,
+        "max_depth_m": 30.7,
+        "max_velocity_ms": 10.48
+      },
+      {
+        "time_hr": 6.0,
+        "inundated_area_km2": 69.28,
+        "max_depth_m": 19.46,
+        "max_velocity_ms": 7.73
+      },
+      {
+        "time_hr": 8.0,
+        "inundated_area_km2": 69.28,
+        "max_depth_m": 12.33,
+        "max_velocity_ms": 5.71
+      }
+    ],
+    "hydrograph": {
+      "peak_discharge_m3s": 76258.6,
+      "time_to_peak_hr": 2.42,
+      "total_volume_released_mcm": 1137.2,
+      "empirical_method": "Froehlich (2008) + Non-linear Reservoir Routing",
+      "points": [
+        {
+          "time_hr": 0.0,
+          "discharge_m3s": 850.0,
+          "reservoir_elevation_m": 660.0,
+          "breach_width_m": 0.0
+        },
+        {
+          "time_hr": 0.25,
+          "discharge_m3s": 776.52,
+          "reservoir_elevation_m": 659.99,
+          "breach_width_m": 3.87
+        },
+        {
+          "time_hr": 0.5,
+          "discharge_m3s": 988.52,
+          "reservoir_elevation_m": 659.98,
+          "breach_width_m": 14.36
+        },
+        {
+          "time_hr": 0.75,
+          "discharge_m3s": 2514.09,
+          "reservoir_elevation_m": 659.95,
+          "breach_width_m": 29.83
+        },
+        {
+          "time_hr": 1.0,
+          "discharge_m3s": 6992.63,
+          "reservoir_elevation_m": 659.89,
+          "breach_width_m": 48.62
+        },
+        {
+          "time_hr": 1.25,
+          "discharge_m3s": 15882.8,
+          "reservoir_elevation_m": 659.72,
+          "breach_width_m": 69.06
+        },
+        {
+          "time_hr": 1.5,
+          "discharge_m3s": 29476.87,
+          "reservoir_elevation_m": 659.39,
+          "breach_width_m": 89.5
+        },
+        {
+          "time_hr": 1.75,
+          "discharge_m3s": 46190.96,
+          "reservoir_elevation_m": 658.82,
+          "breach_width_m": 108.29
+        },
+        {
+          "time_hr": 2.0,
+          "discharge_m3s": 62513.11,
+          "reservoir_elevation_m": 658.0,
+          "breach_width_m": 123.76
+        },
+        {
+          "time_hr": 2.25,
+          "discharge_m3s": 73776.19,
+          "reservoir_elevation_m": 656.94,
+          "breach_width_m": 134.25
+        },
+        {
+          "time_hr": 2.5,
+          "discharge_m3s": 75628.82,
+          "reservoir_elevation_m": 655.75,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 2.75,
+          "discharge_m3s": 71928.66,
+          "reservoir_elevation_m": 654.55,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 3.0,
+          "discharge_m3s": 68386.39,
+          "reservoir_elevation_m": 653.38,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 3.25,
+          "discharge_m3s": 64995.61,
+          "reservoir_elevation_m": 652.24,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 3.5,
+          "discharge_m3s": 61750.21,
+          "reservoir_elevation_m": 651.11,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 3.75,
+          "discharge_m3s": 58644.34,
+          "reservoir_elevation_m": 650.01,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 4.0,
+          "discharge_m3s": 55672.38,
+          "reservoir_elevation_m": 648.94,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 4.25,
+          "discharge_m3s": 52828.99,
+          "reservoir_elevation_m": 647.88,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 4.5,
+          "discharge_m3s": 50109.01,
+          "reservoir_elevation_m": 646.85,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 4.75,
+          "discharge_m3s": 47507.53,
+          "reservoir_elevation_m": 645.84,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 5.0,
+          "discharge_m3s": 45019.84,
+          "reservoir_elevation_m": 644.85,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 5.25,
+          "discharge_m3s": 42641.41,
+          "reservoir_elevation_m": 643.88,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 5.5,
+          "discharge_m3s": 40367.92,
+          "reservoir_elevation_m": 642.93,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 5.75,
+          "discharge_m3s": 38195.22,
+          "reservoir_elevation_m": 642.0,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 6.0,
+          "discharge_m3s": 36119.32,
+          "reservoir_elevation_m": 641.09,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 6.25,
+          "discharge_m3s": 34136.41,
+          "reservoir_elevation_m": 640.2,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 6.5,
+          "discharge_m3s": 32242.83,
+          "reservoir_elevation_m": 639.33,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 6.75,
+          "discharge_m3s": 30435.07,
+          "reservoir_elevation_m": 638.48,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 7.0,
+          "discharge_m3s": 28709.75,
+          "reservoir_elevation_m": 637.65,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 7.25,
+          "discharge_m3s": 27063.64,
+          "reservoir_elevation_m": 636.83,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 7.5,
+          "discharge_m3s": 25493.65,
+          "reservoir_elevation_m": 636.03,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 7.75,
+          "discharge_m3s": 23996.77,
+          "reservoir_elevation_m": 635.26,
+          "breach_width_m": 138.12
+        },
+        {
+          "time_hr": 8.0,
+          "discharge_m3s": 22570.16,
+          "reservoir_elevation_m": 634.5,
+          "breach_width_m": 138.12
+        }
+      ]
+    },
+    "impact": {
+      "total_inundated_area_km2": 69.28,
+      "population_at_risk": 104142,
+      "damaged_structures_count": 23142,
+      "submerged_roads_km": 95.6,
+      "submerged_farmland_ha": 4988.2,
+      "affected_villages": [
+        "Hidkal High Head Segment Downstream Reach",
+        "Ghataprabha Valley Belt",
+        "Lowland Settlements"
+      ],
+      "severed_bridges": [
+        "Sector Bridge #1 (Severed)",
+        "Sector Bridge #2 (Severed)",
+        "Sector Bridge #3 (Severed)"
+      ],
+      "safe_evacuation_centers": [
+        {
+          "id": "rc-dem-1",
+          "name": "High Ground Center North (Hidkal High Head Segment)",
+          "capacity": 36449,
+          "elevation_m": 687.2,
+          "status": "SAFE_HIGH_GROUND",
+          "distance_to_flood_m": 450.0
+        },
+        {
+          "id": "rc-dem-2",
+          "name": "District Stadium Relief Camp",
+          "capacity": 46863,
+          "elevation_m": 680.7,
+          "status": "SAFE_HIGH_GROUND",
+          "distance_to_flood_m": 620.0
+        },
+        {
+          "id": "rc-dem-3",
+          "name": "Hilltop Community School Complex",
+          "capacity": 31242,
+          "elevation_m": 694.2,
+          "status": "SAFE_HIGH_GROUND",
+          "distance_to_flood_m": 880.0
+        }
+      ],
+      "evacuation_readiness_score_pct": 100.0,
+      "emergency_shelter_deficit": 0,
+      "priority_rescue_zones": [
+        "Lowland Confluence",
+        "Riverbend Settlement Sector 2",
+        "Downstream Agricultural Basin"
+      ]
+    },
+    "created_at": "2026-09-20T21:06:13.802451+00:00",
+    "user_id": "usr_fc6e405cd3",
+    "is_custom_dem": true,
+    "dem_metadata": {
+      "filename": "dem-6d42b1fe_sample_dem.tif",
+      "file_size_kb": 64.3,
+      "width_px": 128,
+      "height_px": 128,
+      "min_elevation_m": 620.16,
+      "max_elevation_m": 744.51,
+      "mean_elevation_m": 666.34,
+      "crs_info": "WGS84 / UTM Zone (Georeferenced DEM)",
+      "resolution_m": 30.0
+    }
+  }
+]

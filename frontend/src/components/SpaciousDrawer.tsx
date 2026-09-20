@@ -1,7 +1,8 @@
 import React from 'react';
-import { Sliders, Activity, ChevronLeft, Columns } from 'lucide-react';
+import { Sliders, Activity, UploadCloud, ChevronLeft, Columns } from 'lucide-react';
 import { ScenarioPanel } from './ScenarioPanel';
 import { ImpactPanel } from './ImpactPanel';
+import { DemUploadPanel } from './DemUploadPanel';
 import type { DamInfo, SimulationResult, BreachParameters, EngineType } from '../types';
 import { soundEffects } from '../services/soundEffects';
 import type { DrawerTab } from './SidebarRail';
@@ -17,6 +18,8 @@ interface SpaciousDrawerProps {
   dam: DamInfo | null;
   isRunning: boolean;
   onRunSimulation: (engine: EngineType, scenarioName: string, params: BreachParameters) => void;
+  // Custom DEM props
+  onRunCustomDem: (formData: FormData) => Promise<void>;
   // ImpactPanel props
   simulation: SimulationResult | null;
   currentTimestep: number;
@@ -32,6 +35,7 @@ export const SpaciousDrawer: React.FC<SpaciousDrawerProps> = ({
   dam,
   isRunning,
   onRunSimulation,
+  onRunCustomDem,
   simulation,
   currentTimestep
 }) => {
@@ -51,6 +55,17 @@ export const SpaciousDrawer: React.FC<SpaciousDrawerProps> = ({
           >
             <Sliders size={15} />
             <span>Breach Setup</span>
+          </button>
+
+          <button
+            className={`drawer-tab-btn ${activeTab === 'UPLOAD_DEM' ? 'active' : ''}`}
+            onClick={() => {
+              soundEffects.playClickSound();
+              onSelectTab('UPLOAD_DEM');
+            }}
+          >
+            <UploadCloud size={15} />
+            <span>DEM Studio</span>
           </button>
 
           <button
@@ -98,14 +113,23 @@ export const SpaciousDrawer: React.FC<SpaciousDrawerProps> = ({
 
       {/* Drawer Body Content */}
       <div className="drawer-body">
-        {activeTab === 'SCENARIO' ? (
+        {activeTab === 'SCENARIO' && (
           <ScenarioPanel
             dam={dam}
             isRunning={isRunning}
             onRunSimulation={onRunSimulation}
             isCollapsed={false}
           />
-        ) : (
+        )}
+        
+        {activeTab === 'UPLOAD_DEM' && (
+          <DemUploadPanel
+            isRunning={isRunning}
+            onRunCustomDem={onRunCustomDem}
+          />
+        )}
+
+        {activeTab === 'IMPACT' && (
           <ImpactPanel
             simulation={simulation}
             currentTimestep={currentTimestep}

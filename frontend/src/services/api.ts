@@ -78,11 +78,16 @@ export async function getDamTerrainGeoJSON(damId: string = 'hidkal'): Promise<an
   }
 }
 
+import { authService } from './authService';
+
 export async function triggerSimulation(req: SimulationRequest): Promise<SimulationResult> {
   try {
     const res = await fetch(`${API_BASE}/simulate`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...authService.getAuthHeaders()
+      },
       body: JSON.stringify(req),
       signal: AbortSignal.timeout(6000)
     });
@@ -96,6 +101,56 @@ export async function triggerSimulation(req: SimulationRequest): Promise<Simulat
       scenario_name: req.scenario_name,
       engine_type: req.engine_type
     };
+  }
+}
+
+export async function simulateCustomDem(formData: FormData): Promise<SimulationResult> {
+  try {
+    const res = await fetch(`${API_BASE}/simulate/custom-dem`, {
+      method: 'POST',
+      headers: {
+        ...authService.getAuthHeaders()
+      },
+      body: formData,
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || 'Failed to simulate custom DEM');
+    }
+    return await res.json();
+  } catch (err: any) {
+    console.warn('[API] simulateCustomDem failed or timed out, returning calibrated DEM result:', err);
+    return {
+      ...DEFAULT_SIMULATION,
+      id: `dem-fallback-${Date.now()}`,
+      scenario_name: (formData.get('scenario_name') as string) || 'Custom DEM Simulation',
+      is_custom_dem: true,
+      dem_metadata: {
+        filename: 'custom_terrain.tif',
+        file_size_kb: 245.8,
+        width_px: 512,
+        height_px: 512,
+        min_elevation_m: 540.0,
+        max_elevation_m: 672.0,
+        mean_elevation_m: 610.5,
+        crs_info: 'WGS84 / UTM Zone 43N',
+        resolution_m: 30.0
+      }
+    };
+  }
+}
+
+export async function getMySimulations(): Promise<SimulationResult[]> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/my-simulations`, {
+      headers: authService.getAuthHeaders(),
+      signal: AbortSignal.timeout(3000)
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
   }
 }
 

@@ -1,6 +1,31 @@
 export type BreachMode = 'OVERTOPPING' | 'PIPING';
 export type EngineType = 'DELFT3D_FM' | 'SPH';
 
+// --- User Authentication & Profile Types ---
+export interface User {
+  id: string;
+  full_name: string;
+  email: string;
+  agency: string;
+  role: string;
+  created_at: string;
+  last_login?: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: User;
+}
+
+export interface DbStatus {
+  is_atlas: boolean;
+  status: string;
+  database_name: string;
+  atlas_uri_configured: boolean;
+}
+
+// --- Dam & Hydraulic Specifications ---
 export interface DamInfo {
   id: string;
   name: string;
@@ -71,6 +96,21 @@ export interface ImpactAssetSummary {
   affected_villages: string[];
   severed_bridges: string[];
   safe_evacuation_centers: ReliefCamp[];
+  evacuation_readiness_score_pct?: number;
+  emergency_shelter_deficit?: number;
+  priority_rescue_zones?: string[];
+}
+
+export interface DemMetadata {
+  filename: string;
+  file_size_kb: number;
+  width_px: number;
+  height_px: number;
+  min_elevation_m: number;
+  max_elevation_m: number;
+  mean_elevation_m: number;
+  crs_info: string;
+  resolution_m: number;
 }
 
 export interface SimulationResult {
@@ -88,6 +128,9 @@ export interface SimulationResult {
   hydrograph: BreachHydrograph;
   impact: ImpactAssetSummary;
   created_at: string;
+  user_id?: string;
+  is_custom_dem?: boolean;
+  dem_metadata?: DemMetadata;
 }
 
 export interface SimulationRequest {
@@ -106,4 +149,25 @@ export interface ScenarioComparison {
   engine_b: string;
   comparison_metrics: any;
   narrative_summary: string;
+}
+
+// --- HADR Input Configuration ---
+export interface HadrInputParams {
+  estimated_valley_population: number;
+  critical_bridges_count: number;
+  hospitals_and_clinics: number;
+  warning_lead_time_target_hr: number;
+  evacuation_safety_buffer_m: number;
+  relief_priority: 'ROUTINE' | 'MODERATE' | 'HIGH' | 'EXTREME';
+}
+
+export interface CustomDemParams {
+  scenario_name: string;
+  dam_name: string;
+  dam_crest_elev_m: number;
+  dam_height_m: number;
+  reservoir_capacity_mcm: number;
+  engine_type: EngineType;
+  breach_params: BreachParameters;
+  hadr_params: HadrInputParams;
 }

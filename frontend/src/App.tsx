@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { Header } from './components/Header';
 import { SidebarRail, type DrawerTab } from './components/SidebarRail';
 import { SpaciousDrawer } from './components/SpaciousDrawer';
@@ -6,24 +6,33 @@ import { ScenarioPanel } from './components/ScenarioPanel';
 import { MapViewer } from './components/MapViewer';
 import { TimelineController } from './components/TimelineController';
 import { ImpactPanel } from './components/ImpactPanel';
-import { ThreeSphSimulation } from './components/ThreeSphSimulation';
-import { ComparisonModal } from './components/ComparisonModal';
-import { ExportModal } from './components/ExportModal';
-import { GeeModal } from './components/GeeModal';
-import { SystemGuideModal } from './components/SystemGuideModal';
 import { ToastContainer, type ToastMessage } from './components/Toast';
+
+// Code-split heavy visualizers, modals & full-page views to optimize initial bundle size
+const ThreeSphSimulation = lazy(() => import('./components/ThreeSphSimulation').then(m => ({ default: m.ThreeSphSimulation })));
+const AuthPage = lazy(() => import('./components/AuthPage').then(m => ({ default: m.AuthPage })));
+const ComparisonModal = lazy(() => import('./components/ComparisonModal').then(m => ({ default: m.ComparisonModal })));
+const ExportModal = lazy(() => import('./components/ExportModal').then(m => ({ default: m.ExportModal })));
+const GeeModal = lazy(() => import('./components/GeeModal').then(m => ({ default: m.GeeModal })));
+const SystemGuideModal = lazy(() => import('./components/SystemGuideModal').then(m => ({ default: m.SystemGuideModal })));
 
 import {
   getHealth, getDams, getRiverGeoJSON, getInfrastructureGeoJSON,
   getDamTerrainGeoJSON,
-  getSimulationResults, getSimulationLayers, triggerSimulation
+  getSimulationResults, getSimulationLayers, triggerSimulation,
+  simulateCustomDem
 } from './services/api';
-import type { DamInfo, SimulationResult, BreachParameters, EngineType } from './types';
+import { authService } from './services/authService';
+import type { DamInfo, SimulationResult, BreachParameters, EngineType, User } from './types';
 import { soundEffects } from './services/soundEffects';
 
 export const App: React.FC = () => {
+  const [activePage, setActivePage] = useState<'SIMULATION' | 'AUTH'>('SIMULATION');
   const [activeView, setActiveView] = useState<'3D_SIMULATION' | '2D_GIS'>('2D_GIS');
   const [sphDurationMinutes, setSphDurationMinutes] = useState<number>(10);
+
+  // Authentication State
+  const [user, setUser] = useState<User | null>(() => authService.getUser());
 
   const [health, setHealth] = useState<any>(null);
   const [dam, setDam] = useState<DamInfo | null>(null);
@@ -85,6 +94,11 @@ export const App: React.FC = () => {
 
   // Initial load
   useEffect(() => {
+    // 0. Verify auth profile
+    authService.getMe().then((profile) => {
+      if (profile) setUser(profile);
+    }).catch(console.error);
+
     // 1. Health check
     getHealth().then(setHealth).catch(console.error);
 
@@ -148,12 +162,65 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleRunCustomDem = async (formData: FormData) => {
+    setIsRunning(true);
+    addToast('DEM Ingestion Started', 'Parsing elevation raster & executing 2D hydrodynamic solver...', 'info');
+    try {
+      const newSim = await simulateCustomDem(formData);
+      setSimulation(newSim);
+
+      const layers = await getSimulationLayers(newSim.id);
+      if (layers.layers_by_timestep) {
+        setLayersData(layers.layers_by_timestep);
+        if (layers.isochrones) {
+          setIsochronesData(layers.isochrones);
+        }
+        const steps = Object.keys(layers.layers_by_timestep).map(parseFloat).sort((a, b) => a - b);
+        setTimesteps(steps);
+        setCurrentTimestep(steps[0]);
+      }
+      soundEffects.playChimeSound();
+      addToast(
+        'Custom Simulation Ready',
+        `Peak Outflow: ${newSim.peak_discharge_m3s.toLocaleString()} m³/s | Pop at Risk: ${newSim.impact.population_at_risk.toLocaleString()}`,
+        'success'
+      );
+      // Seamlessly switch to HADR impact tab to display the fresh disaster analytics
+      setDrawerTab('IMPACT');
+    } catch (err: any) {
+      console.error('Custom DEM simulation failed:', err);
+      addToast('DEM Simulation Error', err.message || 'Failed to simulate custom DEM', 'danger');
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   // Dynamic grid template for dual split mode
   const getGridTemplate = () => {
     const leftCol = isLeftCollapsed ? '48px' : '360px';
     const rightCol = isRightCollapsed ? '48px' : '390px';
     return `${leftCol} 1fr ${rightCol}`;
   };
+
+  // Full Page Authentication View
+  if (activePage === 'AUTH') {
+    return (
+      <div className="app-container">
+        <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cyan-primary)' }}>Loading Identity Portal...</div>}>
+          <AuthPage
+            currentUser={user}
+            onSuccess={(u) => {
+              setUser(u);
+              setActivePage('SIMULATION');
+              addToast('Access Granted', `Welcome back, ${u.full_name} (${u.agency})`, 'success');
+            }}
+            onContinueAsGuest={() => setActivePage('SIMULATION')}
+          />
+        </Suspense>
+        <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">
@@ -169,6 +236,13 @@ export const App: React.FC = () => {
         onToggleTheme={toggleTheme}
         isDrawerOpen={isDrawerOpen}
         onToggleDrawer={() => setIsDrawerOpen(!isDrawerOpen)}
+        user={user}
+        onOpenAuth={() => setActivePage('AUTH')}
+        onLogout={() => {
+          authService.logout();
+          setUser(null);
+          addToast('Signed Out', 'Platform session ended', 'info');
+        }}
       />
 
       {/* Main Spacious Workspace */}
@@ -188,6 +262,7 @@ export const App: React.FC = () => {
           onOpenGee={() => setIsGeeOpen(true)}
           onOpenExport={() => setIsExportOpen(true)}
           onOpenGuide={() => setIsGuideOpen(true)}
+          onOpenAuth={() => setActivePage('AUTH')}
         />
 
         {/* Content Area: Dual Split Mode vs Spacious Single Drawer Mode */}
@@ -252,6 +327,7 @@ export const App: React.FC = () => {
               dam={dam}
               isRunning={isRunning}
               onRunSimulation={handleRunSimulation}
+              onRunCustomDem={handleRunCustomDem}
               simulation={simulation}
               currentTimestep={currentTimestep}
             />
@@ -259,13 +335,20 @@ export const App: React.FC = () => {
             <div className="main-view-container">
               {activeView === '3D_SIMULATION' ? (
                 <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-                  <ThreeSphSimulation
-                    durationMinutes={sphDurationMinutes}
-                    onDurationChange={setSphDurationMinutes}
-                    simulation={simulation}
-                    onNotify={addToast}
-                    theme={theme}
-                  />
+                  <Suspense fallback={
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cyan-primary)', gap: 10, fontSize: 13, fontWeight: 600 }}>
+                      <span className="status-dot"></span>
+                      <span>Loading DualSPHysics 3D Particle Engine...</span>
+                    </div>
+                  }>
+                    <ThreeSphSimulation
+                      durationMinutes={sphDurationMinutes}
+                      onDurationChange={setSphDurationMinutes}
+                      simulation={simulation}
+                      onNotify={addToast}
+                      theme={theme}
+                    />
+                  </Suspense>
                 </div>
               ) : (
                 <>
@@ -293,27 +376,37 @@ export const App: React.FC = () => {
         )}
       </div>
 
-      {/* Modals */}
-      <ComparisonModal
-        isOpen={isComparisonOpen}
-        onClose={() => setIsComparisonOpen(false)}
-      />
+      {/* Analytical Modals (Loaded Dynamically on Demand) */}
+      <Suspense fallback={null}>
+        {isComparisonOpen && (
+          <ComparisonModal
+            isOpen={isComparisonOpen}
+            onClose={() => setIsComparisonOpen(false)}
+          />
+        )}
 
-      <ExportModal
-        isOpen={isExportOpen}
-        onClose={() => setIsExportOpen(false)}
-        simulationId={simulation?.id || 'sim-preset-delft3d'}
-      />
+        {isExportOpen && (
+          <ExportModal
+            isOpen={isExportOpen}
+            onClose={() => setIsExportOpen(false)}
+            simulationId={simulation?.id || 'sim-preset-delft3d'}
+          />
+        )}
 
-      <GeeModal
-        isOpen={isGeeOpen}
-        onClose={() => setIsGeeOpen(false)}
-      />
+        {isGeeOpen && (
+          <GeeModal
+            isOpen={isGeeOpen}
+            onClose={() => setIsGeeOpen(false)}
+          />
+        )}
 
-      <SystemGuideModal
-        isOpen={isGuideOpen}
-        onClose={() => setIsGuideOpen(false)}
-      />
+        {isGuideOpen && (
+          <SystemGuideModal
+            isOpen={isGuideOpen}
+            onClose={() => setIsGuideOpen(false)}
+          />
+        )}
+      </Suspense>
 
       {/* Ephemeral Toast Notifications */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />

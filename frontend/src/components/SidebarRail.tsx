@@ -1,11 +1,11 @@
 import React from 'react';
 import {
-  Sliders, Activity, SplitSquareVertical, Satellite, Download,
-  HelpCircle, Columns, ChevronLeft, ChevronRight
+  Sliders, Activity, UploadCloud, SplitSquareVertical, Satellite, Download,
+  HelpCircle, Columns, ChevronLeft, ChevronRight, UserCircle
 } from 'lucide-react';
 import { soundEffects } from '../services/soundEffects';
 
-export type DrawerTab = 'SCENARIO' | 'IMPACT' | null;
+export type DrawerTab = 'SCENARIO' | 'IMPACT' | 'UPLOAD_DEM' | null;
 
 interface SidebarRailProps {
   activeTab: DrawerTab;
@@ -18,6 +18,7 @@ interface SidebarRailProps {
   onOpenGee: () => void;
   onOpenExport: () => void;
   onOpenGuide: () => void;
+  onOpenAuth?: () => void;
 }
 
 export const SidebarRail: React.FC<SidebarRailProps> = ({
@@ -30,9 +31,10 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
   onOpenComparison,
   onOpenGee,
   onOpenExport,
-  onOpenGuide
+  onOpenGuide,
+  onOpenAuth
 }) => {
-  const handleTabClick = (tab: 'SCENARIO' | 'IMPACT') => {
+  const handleTabClick = (tab: 'SCENARIO' | 'IMPACT' | 'UPLOAD_DEM') => {
     soundEffects.playClickSound();
     if (isDrawerOpen && activeTab === tab) {
       // Toggle close if already active
@@ -56,6 +58,17 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
           <Sliders size={20} />
           <span className="rail-btn-label">Scenario</span>
           {isDrawerOpen && activeTab === 'SCENARIO' && <span className="rail-active-pill" />}
+        </button>
+
+        <button
+          className={`rail-btn ${isDrawerOpen && activeTab === 'UPLOAD_DEM' ? 'active' : ''}`}
+          onClick={() => handleTabClick('UPLOAD_DEM')}
+          title="Custom GeoTIFF (.tif) DEM Upload & Simulation"
+          aria-label="DEM Studio"
+        >
+          <UploadCloud size={20} />
+          <span className="rail-btn-label">DEM Studio</span>
+          {isDrawerOpen && activeTab === 'UPLOAD_DEM' && <span className="rail-active-pill" />}
         </button>
 
         <button
@@ -144,6 +157,21 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
           <Columns size={18} />
           <span className="rail-btn-label">Split View</span>
         </button>
+
+        {onOpenAuth && (
+          <button
+            className="rail-btn"
+            onClick={() => {
+              soundEffects.playClickSound();
+              onOpenAuth();
+            }}
+            title="User Profile & MongoDB Atlas Identity"
+            aria-label="Account Identity"
+          >
+            <UserCircle size={18} style={{ color: 'var(--cyan-primary)' }} />
+            <span className="rail-btn-label">Account</span>
+          </button>
+        )}
 
         <button
           className="rail-btn"

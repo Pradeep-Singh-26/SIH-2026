@@ -240,10 +240,10 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
     camera.position.set(450, 480, 520);
     cameraRef.current = camera;
 
-    // 3. Renderer
+    // 3. Renderer (High-Performance GPU Profile)
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -558,11 +558,11 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
     waterSurfaceMeshRef.current = waterSurfaceMesh;
 
     // -------------------------------------------------------------
-    // 11. Massive High-Volume SPH Particle Swarm (60,000 Droplets)
+    // 11. Optimized High-Volume SPH Particle Swarm (18,000 Droplets)
     // -------------------------------------------------------------
-    // 60,000 physical droplets spread across the full 70m - 280m valley floodplain
-    // with 14 stacked depth tiers, creating a massive, deep volumetric surge!
-    const particleCount = 60000;
+    // 18,000 physical droplets spread across the full 70m - 280m valley floodplain
+    // with 14 stacked depth tiers, calibrated with 2.45m sphere radius for dense volumetric surge at 60 FPS!
+    const particleCount = 18000;
     const particlePositions = new Float32Array(particleCount * 3);
     const particleColors = new Float32Array(particleCount * 3);
 
@@ -576,14 +576,16 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
     // Vertical depth tier fraction [0.0 (riverbed) to 1.0 (surface crest)]
     const pDepthFrac = new Float32Array(particleCount);
 
-    // Physical Constants
+    // Physical Constants (Navier-Stokes WCSPH & Tait EOS)
     const REST_DENSITY = 1.0;
-    const STIFFNESS = 18.0;
+    const GAMMA_TAIT = 7.0; // Polytropic index for water
+    const SPEED_OF_SOUND = 30.0; // Numerical sound speed c_s ~ 10 * v_max
+    const TAIT_B = (REST_DENSITY * SPEED_OF_SOUND * SPEED_OF_SOUND) / GAMMA_TAIT; // Stiffness constant B
     const SPH_RADIUS = 10.0;
     const H2 = SPH_RADIUS * SPH_RADIUS;
     const POLY6_COEFF = 315.0 / (64.0 * Math.PI * Math.pow(SPH_RADIUS, 9));
     const SPIKY_GRAD_COEFF = -45.0 / (Math.PI * Math.pow(SPH_RADIUS, 6));
-    const VISCOSITY = 0.85;
+    const MONAGHAN_ALPHA = 0.10; // Anti-clustering artificial viscosity coefficient
     const GRAVITY = 9.81;
 
     // Fast 2D Spatial Hash Grid
@@ -598,7 +600,7 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
     const gridHead = new Int32Array(TOTAL_CELLS);
     const particleNext = new Int32Array(particleCount);
 
-    // Seed 60,000 particles filling the entire reservoir volume
+    // Seed 18,000 particles filling the entire reservoir volume
     const initParticleReservoir = () => {
       for (let i = 0; i < particleCount; i++) {
         // Golden ratio lateral spread ensures completely uniform bank-to-bank distribution
@@ -632,8 +634,8 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
     resetParticlesRef.current = initParticleReservoir;
 
     // MODE A: True 3D Spherical Water Beads
-    // Base droplet radius 1.65m: substantial physical 3D spheres filling the broad valley
-    const sphereRadius = 1.65;
+    // Optimized droplet radius 2.45m: robust physical volume filling the broad valley at smooth 60 FPS
+    const sphereRadius = 2.45;
     const sphereGeo = new THREE.SphereGeometry(sphereRadius, 6, 5);
     const sphereMat = new THREE.MeshStandardMaterial({
       color: 0x052a54,
@@ -643,7 +645,7 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
 
     const instancedSpheres = new THREE.InstancedMesh(sphereGeo, sphereMat, particleCount);
     instancedSpheres.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    instancedSpheres.castShadow = true;
+    instancedSpheres.castShadow = false;
     instancedSpheres.receiveShadow = false;
 
     const instanceColorBuffer = new Float32Array(particleCount * 3);
@@ -679,6 +681,7 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
     // 12. Main Hydrodynamic Physics Animation Loop
     // -------------------------------------------------------------
     let lastClockTime = performance.now();
+    let lastTelemetryTime = 0;
 
     const animate = () => {
       animFrameId.current = requestAnimationFrame(animate);
@@ -699,13 +702,23 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
           p.timeSec = p.maxDurationSec;
           p.isPlaying = false;
           setIsPlaying(false);
-          setSimStatus('COMPLETED');
         }
-        setSimTimeSec(p.timeSec);
       }
 
       const tSec = p.timeSec;
       const isPostBreak = tSec >= 0;
+
+      // Realtime status determination
+      let currentSimStatus: 'PRE_BREAK' | 'BREACHING' | 'SURGING' | 'COMPLETED' = 'PRE_BREAK';
+      if (p.timeSec >= p.maxDurationSec) {
+        currentSimStatus = 'COMPLETED';
+      } else if (tSec < 0) {
+        currentSimStatus = 'PRE_BREAK';
+      } else if (tSec < 35) {
+        currentSimStatus = 'BREACHING';
+      } else {
+        currentSimStatus = 'SURGING';
+      }
 
       // Dam breach progression
       let breachProgress = 0.0;
@@ -713,7 +726,6 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
       let reservoirHead = 84.0;
 
       if (tSec < 0) {
-        setSimStatus('PRE_BREAK');
         breachMesh.position.y = 0;
         breachMesh.scale.set(1.0, 1.0, 1.0);
         crestRoad.position.y = 20.0;
@@ -728,12 +740,6 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
         const drainProg = Math.min(1.0, tSec / p.maxDurationSec);
         reservoirHead = Math.max(42.0, 84.0 - (drainProg * 42.0));
         reservoirLake.position.y = reservoirHead;
-
-        if (tSec < 35) {
-          setSimStatus('BREACHING');
-        } else if (tSec < p.maxDurationSec) {
-          setSimStatus('SURGING');
-        }
       }
 
       let instantDischargeM3s = 0;
@@ -741,7 +747,6 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
         const breachDepth = Math.max(0, reservoirHead - 45.0);
         instantDischargeM3s = Math.round(1.7 * breachWidth * Math.sqrt(GRAVITY) * Math.pow(breachDepth, 1.5) * 0.52);
       }
-      setCurrentDischargeM3s(instantDischargeM3s);
 
       // -------------------------------------------------------------
       // 13. SPH Spatial Grid Build & Hydrodynamic Force Integration
@@ -796,15 +801,17 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
           }
         }
         densities[i] = density;
-        pressures[i] = Math.max(0, STIFFNESS * (density - REST_DENSITY));
+        // True Tait Equation of State for WCSPH: P = B * ((rho / rho0)^gamma - 1)
+        const rhoRatio = Math.max(0.75, Math.min(2.2, density / REST_DENSITY));
+        pressures[i] = Math.max(0, TAIT_B * (Math.pow(rhoRatio, GAMMA_TAIT) - 1.0));
       }
 
       // Pass 2: Hydrodynamic Force Integration & Broad Floodplain Surge
       let maxSpeedFound = 0;
       let sumSpeed = 0;
+      let sumDepth = 0;
       let activeCount = 0;
       let maxFrontZ = 246;
-      let submergedCount = 0;
 
       const dtPhysics = Math.min(dtSim * 0.70, 0.08);
 
@@ -813,9 +820,14 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
       const is3dMode = p.particleRenderMode === '3D_SPHERES';
       const pScale = p.particleScale;
 
-      // Compute theoretical dam-break wave front position based on elapsed surge time
+      // Analytical Ritter-Dressler wave front tracking with bed friction deceleration
       const surgeTimeSec = Math.max(0, tSec);
-      const waveFrontZ = Math.max(-565.0, 246.0 - (28.0 * Math.max(0.1, surgeTimeSec)));
+      const effHead = Math.max(4.0, reservoirHead - 48.0);
+      const c0 = Math.sqrt(GRAVITY * effHead);
+      const u0 = 2.0 * c0;
+      const kDecel = Math.max(0.012, (GRAVITY * Math.pow(p.manningN, 2) * 12.0) / Math.pow(effHead, 1.33));
+      const distFront = (u0 / kDecel) * Math.log(1.0 + kDecel * surgeTimeSec * 0.95);
+      const waveFrontZ = Math.max(-565.0, 246.0 - distFront);
 
       for (let i = 0; i < particleCount; i++) {
         let px = particlePositions[i * 3];
@@ -880,10 +892,11 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
         // -------------------------------------------------------------
         // Dynamic Allocation: Instant Massive Downstream Flood Wave (42k particles)
         // -------------------------------------------------------------
-        if (i < 42000 && particleState[i] === 0) {
+        const downstreamThreshold = Math.floor(particleCount * 0.7);
+        if (i < downstreamThreshold && particleState[i] === 0) {
           // Immediately populate the active flood reach [waveFrontZ, 244] across the full valley
           const floodReach = Math.max(10.0, 244.0 - waveFrontZ);
-          const longFrac = (i / 42000.0);
+          const longFrac = (i / downstreamThreshold);
           const initZ = 244.0 - longFrac * floodReach;
           const initCX = getCanalCenterlineX(initZ);
           const initWH = getValleyHalfWidth(initZ);
@@ -1003,8 +1016,6 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
         // SPH Inter-particle Pressure & Viscosity
         let fPressureX = 0;
         let fPressureZ = 0;
-        let fViscosityX = 0;
-        let fViscosityZ = 0;
 
         const cx = Math.floor((px - GRID_MIN_X) / CELL_SIZE);
         const cz = Math.floor((pz - GRID_MIN_Z) / CELL_SIZE);
@@ -1032,13 +1043,23 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
                     const nz = djz / r;
 
                     const rhoj = Math.max(0.2, densities[j]);
-                    const pressureTerm = (pi / (rhoi * rhoi) + pressures[j] / (rhoj * rhoj));
-                    fPressureX -= pressureTerm * spikyGrad * nx * 0.40;
-                    fPressureZ -= pressureTerm * spikyGrad * nz * 0.40;
+                    const rhoBar = 0.5 * (rhoi + rhoj);
+                    
+                    // Monaghan (1992) Artificial Viscosity Tensor: Pi_ij = (-alpha * c_s * mu_ij) / rhoBar
+                    const dvx = vx - velocities[j * 3];
+                    const dvz = vz - velocities[j * 3 + 2];
+                    const vDotX = dvx * djx + dvz * djz;
+                    let pi_ij = 0.0;
+                    if (vDotX < 0) {
+                      const mu_ij = (SPH_RADIUS * vDotX) / (r2 + 0.01 * H2);
+                      pi_ij = (-MONAGHAN_ALPHA * SPEED_OF_SOUND * mu_ij) / rhoBar;
+                    }
 
-                    const viscKernel = (SPH_RADIUS - r) * 0.12;
-                    fViscosityX += (velocities[j * 3] - vx) * viscKernel / rhoj;
-                    fViscosityZ += (velocities[j * 3 + 2] - vz) * viscKernel / rhoj;
+                    // Combined SPH pressure gradient & artificial shock dissipation
+                    const pressureTerm = (pi / (rhoi * rhoi) + pressures[j] / (rhoj * rhoj) + pi_ij);
+                    fPressureX -= pressureTerm * spikyGrad * nx * 0.35;
+                    fPressureZ -= pressureTerm * spikyGrad * nz * 0.35;
+
                     forceNeighbors++;
                   }
                 }
@@ -1055,8 +1076,8 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
         const aFricX = -manningResistance * vx * 1.1;
         const aFricZ = -manningResistance * vz * 1.1;
 
-        const aNetX = aGravX + aCanalGuidanceX + aBoundaryX + fPressureX + fViscosityX * VISCOSITY + aFricX;
-        const aNetZ = aGravZ + aDownhillMomentumZ + fPressureZ + fViscosityZ * VISCOSITY + aFricZ;
+        const aNetX = aGravX + aCanalGuidanceX + aBoundaryX + fPressureX + aFricX;
+        const aNetZ = aGravZ + aDownhillMomentumZ + fPressureZ + aFricZ;
 
         vx += aNetX * dtPhysics;
         vz += aNetZ * dtPhysics;
@@ -1118,6 +1139,7 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
 
         if (speed > maxSpeedFound) maxSpeedFound = speed;
         sumSpeed += speed;
+        sumDepth += Math.max(0.8, py - bedY);
         activeCount++;
         if (pz < maxFrontZ) maxFrontZ = pz;
 
@@ -1251,29 +1273,37 @@ export const ThreeSphSimulation: React.FC<ThreeSphSimulationProps> = ({
       }
 
       // -------------------------------------------------------------
-      // 15. Live Hydrodynamic Telemetry & Froude Number Calculation
+      // 15. Live Hydrodynamic Telemetry & Froude Calculation (Throttled for 60 FPS)
       // -------------------------------------------------------------
-      if (isPostBreak && activeCount > 0) {
-        const meanSpeed = sumSpeed / activeCount;
-        const meanDepth = 7.8; // High volumetric flood wave depth (m)
-        const fr = parseFloat((meanSpeed / Math.sqrt(GRAVITY * meanDepth)).toFixed(2));
-        setFroudeNumber(fr);
-        setMaxVelocityMs(parseFloat(maxSpeedFound.toFixed(1)));
-        setAvgDepthM(parseFloat(meanDepth.toFixed(1)));
+      if (now - lastTelemetryTime > 120 || !p.isPlaying) {
+        lastTelemetryTime = now;
+        setSimTimeSec(Math.round(p.timeSec * 10) / 10);
+        setSimStatus(currentSimStatus);
+        setCurrentDischargeM3s(instantDischargeM3s);
 
-        const frontDist = Math.max(0, Math.round((246 - maxFrontZ) * terrainScale * 0.45));
-        setWaveFrontDistM(frontDist);
+        if (isPostBreak && activeCount > 0) {
+          const meanSpeed = sumSpeed / activeCount;
+          const meanDepth = parseFloat((sumDepth / activeCount).toFixed(1));
+          const fr = parseFloat((meanSpeed / Math.sqrt(GRAVITY * Math.max(0.5, meanDepth))).toFixed(2));
+          setFroudeNumber(fr);
+          setMaxVelocityMs(parseFloat(maxSpeedFound.toFixed(1)));
+          setAvgDepthM(meanDepth);
 
-        CRITICAL_ASSETS.forEach((asset) => {
-          if (frontDist >= asset.thresholdDistM) submergedCount++;
-        });
-        setSubmergedAssetsCount(submergedCount);
-      } else {
-        setFroudeNumber(0);
-        setMaxVelocityMs(0);
-        setAvgDepthM(0);
-        setWaveFrontDistM(0);
-        setSubmergedAssetsCount(0);
+          const frontDist = Math.max(0, Math.round((246 - maxFrontZ) * terrainScale * 0.45));
+          setWaveFrontDistM(frontDist);
+
+          let submerged = 0;
+          CRITICAL_ASSETS.forEach((asset) => {
+            if (frontDist >= asset.thresholdDistM) submerged++;
+          });
+          setSubmergedAssetsCount(submerged);
+        } else {
+          setFroudeNumber(0);
+          setMaxVelocityMs(0);
+          setAvgDepthM(0);
+          setWaveFrontDistM(0);
+          setSubmergedAssetsCount(0);
+        }
       }
 
       // -------------------------------------------------------------

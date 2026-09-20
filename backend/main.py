@@ -1,14 +1,21 @@
 import uuid
 import json
+import shutil
 from pathlib import Path
-from typing import Dict, Any, Optional
-from fastapi import FastAPI, HTTPException, Response
+from typing import Dict, Any, Optional, List
+from fastapi import FastAPI, HTTPException, Response, Depends, status, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import MODE, DELFT3D_BIN_PATH, DUALSPHYSICS_BIN_PATH, OUTPUTS_DIR
 from backend.models.schemas import (
     SimulationRequest, SimulationResult, SimulationStatus,
-    DamInfo, ScenarioComparison, EngineType
+    DamInfo, ScenarioComparison, EngineType, BreachMode, BreachParameters,
+    UserCreate, UserLogin, UserResponse, TokenResponse, HadrInputParams
+)
+from backend.db.mongodb import db_manager
+from backend.auth import (
+    hash_password, verify_password, create_access_token,
+    get_current_user, require_current_user
 )
 from backend.data.hidkal_dam.data_loader import (
     get_dam_info, get_river_centerline_geojson, get_infrastructure_geojson,
@@ -16,13 +23,18 @@ from backend.data.hidkal_dam.data_loader import (
 )
 from backend.hydro_engine.delft3d_runner import run_delft3d_simulation
 from backend.hydro_engine.sph_runner import run_sph_simulation
+from backend.hydro_engine.dem_processor import run_custom_dem_simulation
 from backend.hydro_engine.exporter import convert_geojson_to_kml, create_shapefile_archive
+
+from fastapi.middleware.gzip import GZipMiddleware
 
 app = FastAPI(
     title="Dam Break Inundation Modelling API (SIH26161)",
     description="2D Hydrodynamic Dam Break Simulation Engine supporting Delft3D FM, SPH, and HADR Impact Analysis",
     version="1.0.0"
 )
+
+app.add_middleware(GZipMiddleware, minimum_size=800)
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,8 +44,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory store for simulation results
+# In-memory store for simulation results and cached GIS layers
 SIMULATION_STORE: Dict[str, SimulationResult] = {}
+GIS_CACHE: Dict[str, Any] = {}
 
 # Initialize with preset default runs for instant demonstration
 def _init_presets():
@@ -82,28 +95,226 @@ def get_dam(dam_id: str):
     return get_dam_info(dam_id)
 
 @app.get("/api/dams/{dam_id}/river")
-def get_dam_river(dam_id: str):
-    return get_river_centerline_geojson()
+def get_dam_river(dam_id: str, response: Response):
+    response.headers["Cache-Control"] = "public, max-age=3600"
+    if "river" not in GIS_CACHE:
+        GIS_CACHE["river"] = get_river_centerline_geojson()
+    return GIS_CACHE["river"]
 
 @app.get("/api/dams/{dam_id}/infrastructure")
-def get_dam_infrastructure(dam_id: str):
-    return get_infrastructure_geojson()
+def get_dam_infrastructure(dam_id: str, response: Response):
+    response.headers["Cache-Control"] = "public, max-age=3600"
+    if "infra" not in GIS_CACHE:
+        GIS_CACHE["infra"] = get_infrastructure_geojson()
+    return GIS_CACHE["infra"]
 
 @app.get("/api/dams/{dam_id}/terrain")
-def get_dam_terrain(dam_id: str):
+def get_dam_terrain(dam_id: str, response: Response):
     if dam_id != "hidkal":
         raise HTTPException(status_code=404, detail="Dam terrain not found")
-    return get_dam_terrain_geojson()
+    response.headers["Cache-Control"] = "public, max-age=3600"
+    if "terrain" not in GIS_CACHE:
+        GIS_CACHE["terrain"] = get_dam_terrain_geojson()
+    return GIS_CACHE["terrain"]
 
+# -------------------------------------------------------------
+# Authentication & MongoDB Atlas Routes
+# -------------------------------------------------------------
+@app.get("/api/auth/db-status")
+def get_db_status():
+    """Returns MongoDB Atlas connection status and storage mode."""
+    return db_manager.get_status()
+
+@app.post("/api/auth/signup", response_model=TokenResponse)
+def signup(req: UserCreate):
+    """Registers a new disaster management / hydrologist user and issues a JWT token."""
+    existing = db_manager.find_user_by_email(req.email)
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="An account with this email address already exists"
+        )
+
+    pwd_data = hash_password(req.password)
+    user_id = f"usr_{uuid.uuid4().hex[:10]}"
+    user_doc = {
+        "id": user_id,
+        "full_name": req.full_name,
+        "email": req.email,
+        "agency": req.agency,
+        "role": req.role,
+        "password_hash": pwd_data["hash"],
+        "password_salt": pwd_data["salt"]
+    }
+    created = db_manager.create_user(user_doc)
+    token = create_access_token({"sub": user_id, "email": req.email, "role": req.role})
+
+    user_resp = UserResponse(
+        id=created["id"],
+        full_name=created["full_name"],
+        email=created["email"],
+        agency=created["agency"],
+        role=created["role"],
+        created_at=created.get("created_at", ""),
+        last_login=created.get("last_login")
+    )
+    return TokenResponse(access_token=token, token_type="bearer", user=user_resp)
+
+@app.post("/api/auth/login", response_model=TokenResponse)
+def login(req: UserLogin):
+    """Authenticates user against MongoDB Atlas and returns JWT access token."""
+    user = db_manager.find_user_by_email(req.email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
+        )
+
+    if not verify_password(req.password, user.get("password_hash", ""), user.get("password_salt", "")):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
+        )
+
+    db_manager.update_user_last_login(user["id"])
+    token = create_access_token({"sub": user["id"], "email": user["email"], "role": user.get("role", "")})
+
+    user_resp = UserResponse(
+        id=user["id"],
+        full_name=user["full_name"],
+        email=user["email"],
+        agency=user.get("agency", "National Disaster Management Authority"),
+        role=user.get("role", "Hydrologist"),
+        created_at=user.get("created_at", ""),
+        last_login=user.get("last_login")
+    )
+    return TokenResponse(access_token=token, token_type="bearer", user=user_resp)
+
+@app.get("/api/auth/me", response_model=UserResponse)
+def get_me(user: Dict[str, Any] = Depends(require_current_user)):
+    """Returns currently authenticated user profile."""
+    return UserResponse(
+        id=user["id"],
+        full_name=user["full_name"],
+        email=user["email"],
+        agency=user.get("agency", "National Disaster Management Authority"),
+        role=user.get("role", "Hydrologist"),
+        created_at=user.get("created_at", ""),
+        last_login=user.get("last_login")
+    )
+
+@app.get("/api/auth/my-simulations")
+def get_my_simulations(user: Dict[str, Any] = Depends(require_current_user)):
+    """Returns list of simulations saved by the logged-in user."""
+    return db_manager.get_simulations_by_user(user["id"])
+
+# -------------------------------------------------------------
+# Simulation Execution & Custom DEM Ingestion Routes
+# -------------------------------------------------------------
 @app.post("/api/simulate", response_model=SimulationResult)
-def trigger_simulation(req: SimulationRequest):
+def trigger_simulation(req: SimulationRequest, current_user: Optional[Dict[str, Any]] = Depends(get_current_user)):
     sim_id = f"sim-{uuid.uuid4().hex[:8]}"
     if req.engine_type == EngineType.SPH:
         result = run_sph_simulation(sim_id, req.breach_params, req.scenario_name)
     else:
         result = run_delft3d_simulation(sim_id, req.breach_params, req.scenario_name)
         
+    if current_user:
+        result.user_id = current_user.get("id")
+        db_manager.save_simulation(result.model_dump())
+
     SIMULATION_STORE[sim_id] = result
+    return result
+
+@app.post("/api/simulate/custom-dem", response_model=SimulationResult)
+async def trigger_custom_dem_simulation(
+    file: UploadFile = File(...),
+    scenario_name: str = Form("Custom Terrain Breach Simulation"),
+    dam_name: str = Form("Custom Dam Site"),
+    dam_crest_elev_m: float = Form(662.0),
+    dam_height_m: float = Form(52.0),
+    reservoir_capacity_mcm: float = Form(1400.0),
+    engine_type: EngineType = Form(EngineType.DELFT3D_FM),
+    # Breach Parameters
+    failure_mode: BreachMode = Form(BreachMode.OVERTOPPING),
+    initial_water_level_m: float = Form(660.0),
+    breach_bottom_elevation_m: float = Form(615.0),
+    breach_top_width_m: float = Form(160.0),
+    breach_bottom_width_m: float = Form(80.0),
+    breach_formation_time_hr: float = Form(2.5),
+    side_slope_z: float = Form(1.0),
+    manning_roughness_n: float = Form(0.035),
+    simulation_duration_hr: float = Form(8.0),
+    # HADR Parameters
+    estimated_valley_population: int = Form(120000),
+    critical_bridges_count: int = Form(4),
+    hospitals_and_clinics: int = Form(6),
+    warning_lead_time_target_hr: float = Form(2.0),
+    evacuation_safety_buffer_m: float = Form(12.0),
+    relief_priority: str = Form("HIGH"),
+    current_user: Optional[Dict[str, Any]] = Depends(get_current_user)
+):
+    """
+    Ingests an uploaded GeoTIFF (.tif/.tiff) DEM and executes hydrodynamic dam break
+    inundation modeling and customized HADR emergency analytics.
+    """
+    # Validate file extension
+    ext = Path(file.filename or "upload.tif").suffix.lower()
+    if ext not in [".tif", ".tiff"]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file format '{ext}'. Please upload a GeoTIFF (.tif or .tiff) elevation raster."
+        )
+
+    upload_dir = OUTPUTS_DIR / "uploads"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    sim_id = f"dem-{uuid.uuid4().hex[:8]}"
+    saved_tif_path = upload_dir / f"{sim_id}_{file.filename}"
+
+    with open(saved_tif_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    breach_params = BreachParameters(
+        failure_mode=failure_mode,
+        initial_water_level_m=initial_water_level_m,
+        breach_bottom_elevation_m=breach_bottom_elevation_m,
+        breach_top_width_m=breach_top_width_m,
+        breach_bottom_width_m=breach_bottom_width_m,
+        breach_formation_time_hr=breach_formation_time_hr,
+        side_slope_z=side_slope_z,
+        manning_roughness_n=manning_roughness_n,
+        simulation_duration_hr=simulation_duration_hr
+    )
+
+    hadr_params = HadrInputParams(
+        estimated_valley_population=estimated_valley_population,
+        critical_bridges_count=critical_bridges_count,
+        hospitals_and_clinics=hospitals_and_clinics,
+        warning_lead_time_target_hr=warning_lead_time_target_hr,
+        evacuation_safety_buffer_m=evacuation_safety_buffer_m,
+        relief_priority=relief_priority
+    )
+
+    user_id = current_user.get("id") if current_user else None
+
+    result = run_custom_dem_simulation(
+        sim_id=sim_id,
+        tif_path=saved_tif_path,
+        scenario_name=scenario_name,
+        dam_name=dam_name,
+        dam_crest_elev_m=dam_crest_elev_m,
+        dam_height_m=dam_height_m,
+        reservoir_capacity_mcm=reservoir_capacity_mcm,
+        breach_params=breach_params,
+        hadr_params=hadr_params,
+        engine_type=engine_type,
+        user_id=user_id
+    )
+
+    SIMULATION_STORE[sim_id] = result
+    # Save to MongoDB Atlas / local DB
+    db_manager.save_simulation(result.model_dump())
+
     return result
 
 @app.get("/api/simulations/{sim_id}/results", response_model=SimulationResult)

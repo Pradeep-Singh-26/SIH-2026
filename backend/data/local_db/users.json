@@ -1,0 +1,13 @@
+[
+  {
+    "id": "usr_fc6e405cd3",
+    "full_name": "Commander Pradeep",
+    "email": "pradeep@ndma.gov.in",
+    "agency": "National Disaster Management Authority (NDMA)",
+    "role": "Emergency Disaster Commander",
+    "password_hash": "3c7fde412bcd84a66f2cfe142be4e25024faecf8dad0ceb99b6cba760679d1cc",
+    "password_salt": "f8465543699075937783e826ac2923a2",
+    "created_at": "2026-09-20T21:05:54.701539+00:00",
+    "last_login": "2026-09-20T21:06:13.795029+00:00"
+  }
+]

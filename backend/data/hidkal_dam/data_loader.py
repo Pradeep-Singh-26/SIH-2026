@@ -20,29 +20,54 @@ HIDKAL_DAM_INFO = DamInfo(
 )
 
 DOWNSTREAM_SETTLEMENTS = [
-    {"name": "Hidkal Colony", "lat": 16.155, "lon": 74.648, "population": 4200, "elevation_m": 612, "dist_km": 1.5},
-    {"name": "Yadwad Village", "lat": 16.162, "lon": 74.675, "population": 6800, "elevation_m": 605, "dist_km": 4.8},
-    {"name": "Bellad Bagewadi", "lat": 16.145, "lon": 74.720, "population": 14500, "elevation_m": 598, "dist_km": 9.2},
-    {"name": "Borgal", "lat": 16.182, "lon": 74.745, "population": 5300, "elevation_m": 589, "dist_km": 13.5},
-    {"name": "Gokak Falls Township", "lat": 16.175, "lon": 74.795, "population": 22000, "elevation_m": 574, "dist_km": 21.0},
-    {"name": "Gokak City (Riverbank District)", "lat": 16.165, "lon": 74.835, "population": 85000, "elevation_m": 562, "dist_km": 26.5},
-    {"name": "Konnur", "lat": 16.195, "lon": 74.870, "population": 19500, "elevation_m": 554, "dist_km": 32.0},
-    {"name": "Mamdapur", "lat": 16.210, "lon": 74.910, "population": 8200, "elevation_m": 546, "dist_km": 37.5}
+    {"name": "Hidkal Colony", "lat": 16.155, "lon": 74.648, "population": 4200, "elevation_m": 612, "dist_km": 1.5, "assigned_shelter": "Hukkeri Govt Polytechnic Relief Center"},
+    {"name": "Yadwad Village", "lat": 16.162, "lon": 74.675, "population": 6800, "elevation_m": 605, "dist_km": 4.8, "assigned_shelter": "Yamakanmardi Community Shelter"},
+    {"name": "Bellad Bagewadi", "lat": 16.145, "lon": 74.720, "population": 14500, "elevation_m": 598, "dist_km": 9.2, "assigned_shelter": "Yamakanmardi Community Shelter"},
+    {"name": "Yamakanmardi Town", "lat": 16.185, "lon": 74.715, "population": 11200, "elevation_m": 622, "dist_km": 10.8, "assigned_shelter": "Yamakanmardi Community Shelter"},
+    {"name": "Hukkeri Taluk HQ", "lat": 16.232, "lon": 74.602, "population": 24500, "elevation_m": 645, "dist_km": 12.2, "assigned_shelter": "Hukkeri Govt Polytechnic Relief Center"},
+    {"name": "Borgal", "lat": 16.182, "lon": 74.745, "population": 5300, "elevation_m": 589, "dist_km": 13.5, "assigned_shelter": "Yamakanmardi Community Shelter"},
+    {"name": "Ankalgi Village", "lat": 16.125, "lon": 74.760, "population": 7500, "elevation_m": 602, "dist_km": 15.5, "assigned_shelter": "Yamakanmardi Community Shelter"},
+    {"name": "Naganur Village", "lat": 16.160, "lon": 74.775, "population": 5100, "elevation_m": 585, "dist_km": 18.2, "assigned_shelter": "Gokak Hilltop College Complex"},
+    {"name": "Gokak Falls Township", "lat": 16.175, "lon": 74.795, "population": 22000, "elevation_m": 574, "dist_km": 21.0, "assigned_shelter": "Gokak Hilltop College Complex"},
+    {"name": "Gokak City (Riverbank)", "lat": 16.165, "lon": 74.835, "population": 85000, "elevation_m": 562, "dist_km": 26.5, "assigned_shelter": "Gokak Hilltop College Complex"},
+    {"name": "Lolakatte Village", "lat": 16.185, "lon": 74.855, "population": 4300, "elevation_m": 558, "dist_km": 29.5, "assigned_shelter": "Gokak Hilltop College Complex"},
+    {"name": "Konnur", "lat": 16.195, "lon": 74.870, "population": 19500, "elevation_m": 554, "dist_km": 32.0, "assigned_shelter": "Konnur High Ground Camp"},
+    {"name": "Mamdapur", "lat": 16.210, "lon": 74.910, "population": 8200, "elevation_m": 546, "dist_km": 37.5, "assigned_shelter": "Konnur High Ground Camp"}
 ]
 
 CRITICAL_INFRASTRUCTURE = [
-    {"id": "br-1", "name": "SH-31 Ghataprabha River Bridge", "type": "BRIDGE", "lat": 16.152, "lon": 74.685, "criticality": "HIGH"},
-    {"id": "br-2", "name": "Yamakanmardi Link Bridge", "type": "BRIDGE", "lat": 16.170, "lon": 74.740, "criticality": "CRITICAL"},
-    {"id": "br-3", "name": "Gokak Historic Suspension Bridge", "type": "BRIDGE", "lat": 16.176, "lon": 74.802, "criticality": "EXTREME"},
-    {"id": "hosp-1", "name": "Gokak General Hospital", "type": "HOSPITAL", "lat": 16.168, "lon": 74.825, "criticality": "HIGH"},
-    {"id": "power-1", "name": "Gokak Falls Hydroelectric Substation", "type": "POWER_GRID", "lat": 16.178, "lon": 74.792, "criticality": "CRITICAL"}
+    # River Bridges & Roadway Arteries
+    {"id": "br-dam", "name": "Hidkal Dam Toe Tailrace Bridge", "type": "BRIDGE", "lat": 16.1542, "lon": 74.6520, "dist_km": 1.6, "criticality": "CRITICAL"},
+    {"id": "br-1", "name": "SH-31 Ghataprabha River Bridge", "type": "BRIDGE", "lat": 16.1520, "lon": 74.6850, "dist_km": 5.8, "criticality": "HIGH"},
+    {"id": "br-2", "name": "Yamakanmardi Highway Bridge", "type": "BRIDGE", "lat": 16.1700, "lon": 74.7400, "dist_km": 14.4, "criticality": "CRITICAL"},
+    {"id": "br-3", "name": "Gokak Historic Suspension Bridge (1887)", "type": "BRIDGE", "lat": 16.1760, "lon": 74.8020, "dist_km": 23.3, "criticality": "EXTREME"},
+    {"id": "br-4", "name": "Gokak Town Road Bridge (SH-134)", "type": "BRIDGE", "lat": 16.1670, "lon": 74.8320, "dist_km": 26.5, "criticality": "HIGH"},
+    {"id": "br-5", "name": "Konnur Rail & Highway Bridge", "type": "BRIDGE", "lat": 16.2025, "lon": 74.8820, "dist_km": 32.9, "criticality": "CRITICAL"},
+    # Hydrometric Gauging Stations & Canal Lifelines
+    {"id": "gauge-glbc", "name": "Ghataprabha Left Bank Canal Head Regulator (GLBC)", "type": "GAUGE", "lat": 16.1510, "lon": 74.6395, "dist_km": 0.8, "criticality": "HIGH"},
+    {"id": "gauge-grbc", "name": "Ghataprabha Right Bank Canal Head Regulator (GRBC)", "type": "GAUGE", "lat": 16.1450, "lon": 74.6360, "dist_km": 0.6, "criticality": "HIGH"},
+    {"id": "gauge-cwc-1", "name": "CWC Gokak Falls Stream Telemetry Gauge", "type": "GAUGE", "lat": 16.1758, "lon": 74.7930, "dist_km": 21.2, "criticality": "CRITICAL"},
+    # Industrial & Heritage Landmarks
+    {"id": "her-mill", "name": "Historic Gokak Mills (Forbes Gokak Ltd, 1887)", "type": "HERITAGE_INDUSTRY", "lat": 16.1770, "lon": 74.7975, "dist_km": 21.6, "criticality": "HIGH"},
+    {"id": "her-temple", "name": "Mahalingeshwara Temple (Chalikyan Shrine)", "type": "HERITAGE_INDUSTRY", "lat": 16.1745, "lon": 74.7960, "dist_km": 21.3, "criticality": "MEDIUM"},
+    {"id": "her-rail", "name": "Gokak Road Railway Junction (SWR)", "type": "HERITAGE_INDUSTRY", "lat": 16.2080, "lon": 74.8320, "dist_km": 27.8, "criticality": "CRITICAL"},
+    {"id": "her-weir", "name": "Konnur Historical Anicut & Diversion Barrage", "type": "HERITAGE_INDUSTRY", "lat": 16.2040, "lon": 74.8810, "dist_km": 33.1, "criticality": "HIGH"},
+    {"id": "ind-yadwad", "name": "Yadwad Industrial Limestone Corridor", "type": "HERITAGE_INDUSTRY", "lat": 16.1850, "lon": 74.6950, "dist_km": 7.2, "criticality": "MEDIUM"},
+    # Emergency Response, Medical & Power Assets
+    {"id": "hosp-1", "name": "Gokak General Hospital & Trauma Center", "type": "HOSPITAL", "lat": 16.1680, "lon": 74.8250, "dist_km": 26.0, "criticality": "HIGH"},
+    {"id": "hosp-2", "name": "Hukkeri Taluk General Hospital", "type": "HOSPITAL", "lat": 16.2300, "lon": 74.6000, "dist_km": 12.0, "criticality": "HIGH"},
+    {"id": "power-1", "name": "Gokak Falls 110kV Hydro Substation", "type": "POWER_GRID", "lat": 16.1780, "lon": 74.7920, "dist_km": 21.5, "criticality": "CRITICAL"},
+    {"id": "power-dam", "name": "Hidkal Hydroelectric Powerhouse & Switchyard", "type": "POWER_GRID", "lat": 16.1495, "lon": 74.6385, "dist_km": 0.5, "criticality": "CRITICAL"},
+    {"id": "emerg-fire", "name": "Gokak Fire & Emergency Rescue Station", "type": "EMERGENCY_SERVICES", "lat": 16.1710, "lon": 74.8210, "dist_km": 25.4, "criticality": "CRITICAL"},
+    {"id": "emerg-teoc", "name": "Hukkeri Taluk Emergency Operations Center (TEOC)", "type": "EMERGENCY_SERVICES", "lat": 16.2350, "lon": 74.5950, "dist_km": 12.5, "criticality": "CRITICAL"}
 ]
 
 RELIEF_CAMPS = [
-    {"id": "rc-1", "name": "Hukkeri Govt Polytechnic Relief Center", "lat": 16.225, "lon": 74.605, "capacity": 3500, "elevation_m": 648, "status": "SAFE_HIGH_GROUND"},
-    {"id": "rc-2", "name": "Yamakanmardi Community Shelter", "lat": 16.195, "lon": 74.710, "capacity": 2200, "elevation_m": 625, "status": "SAFE_HIGH_GROUND"},
-    {"id": "rc-3", "name": "Gokak Hilltop College Complex", "lat": 16.150, "lon": 74.848, "capacity": 8000, "elevation_m": 610, "status": "SAFE_HIGH_GROUND"},
-    {"id": "rc-4", "name": "Konnur High Ground Camp", "lat": 16.220, "lon": 74.885, "capacity": 4000, "elevation_m": 590, "status": "SAFE_HIGH_GROUND"}
+    {"id": "rc-1", "name": "Hukkeri Govt Polytechnic Relief Center", "lat": 16.2250, "lon": 74.6050, "capacity": 3500, "elevation_m": 648, "buffer_m": 36.0, "status": "SAFE_HIGH_GROUND", "facilities": "Helipad, Medical Triage, Potable Water, Wireless Comm"},
+    {"id": "rc-2", "name": "Yamakanmardi Community Shelter", "lat": 16.1950, "lon": 74.7100, "capacity": 2200, "elevation_m": 625, "buffer_m": 27.0, "status": "SAFE_HIGH_GROUND", "facilities": "Emergency Food Distribution, Field Clinic, Generators"},
+    {"id": "rc-3", "name": "Gokak Hilltop College Complex", "lat": 16.1500, "lon": 74.8480, "capacity": 8000, "elevation_m": 610, "buffer_m": 48.0, "status": "SAFE_HIGH_GROUND", "facilities": "Major Evacuee Hub, Surgical Center, Helipad, State NDRF Base"},
+    {"id": "rc-4", "name": "Konnur High Ground Camp", "lat": 16.2200, "lon": 74.8850, "capacity": 4000, "elevation_m": 590, "buffer_m": 36.0, "status": "SAFE_HIGH_GROUND", "facilities": "Boat Rescue Depot, Relief Supplies, Medical Outpost"},
+    {"id": "rc-5", "name": "Sankeshwar - Hukkeri Regional Logistics Hub", "lat": 16.2550, "lon": 74.5500, "capacity": 6000, "elevation_m": 660, "buffer_m": 48.0, "status": "SAFE_HIGH_GROUND", "facilities": "National Disaster Airlift Corridor, Central Supply Depot"}
 ]
 
 def get_dam_info(dam_id: str = "hidkal") -> DamInfo:
@@ -371,7 +396,8 @@ def get_infrastructure_geojson() -> Dict[str, Any]:
                 "name": s["name"],
                 "population": s["population"],
                 "elevation_m": s["elevation_m"],
-                "distance_km": s["dist_km"]
+                "distance_km": s["dist_km"],
+                "assigned_shelter": s.get("assigned_shelter", "")
             }
         })
         
@@ -388,7 +414,8 @@ def get_infrastructure_geojson() -> Dict[str, Any]:
                 "sub_type": ci["type"],
                 "id": ci["id"],
                 "name": ci["name"],
-                "criticality": ci["criticality"]
+                "criticality": ci["criticality"],
+                "distance_km": ci.get("dist_km", 0.0)
             }
         })
         
@@ -406,7 +433,9 @@ def get_infrastructure_geojson() -> Dict[str, Any]:
                 "name": rc["name"],
                 "capacity": rc["capacity"],
                 "elevation_m": rc["elevation_m"],
-                "status": rc["status"]
+                "buffer_m": rc.get("buffer_m", 30.0),
+                "status": rc["status"],
+                "facilities": rc.get("facilities", "Emergency Logistics Hub")
             }
         })
         

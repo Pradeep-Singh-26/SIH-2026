@@ -2,6 +2,40 @@ from enum import Enum
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
+# --- User & Auth Schemas ---
+class UserRole(str, Enum):
+    HYDROLOGIST = "Hydrologist"
+    EMERGENCY_COMMANDER = "Emergency Disaster Commander"
+    GIS_ANALYST = "GIS & Remote Sensing Analyst"
+    FIELD_OFFICER = "Field Response Officer"
+    RESEARCHER = "Research Scholar"
+
+class UserCreate(BaseModel):
+    full_name: str = Field(..., min_length=2, max_length=100)
+    email: str = Field(..., min_length=5, max_length=120)
+    password: str = Field(..., min_length=6)
+    agency: str = Field(default="National Disaster Management Authority (NDMA)")
+    role: str = Field(default="Hydrologist")
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class UserResponse(BaseModel):
+    id: str
+    full_name: str
+    email: str
+    agency: str
+    role: str
+    created_at: str
+    last_login: Optional[str] = None
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+# --- Hydrodynamic Simulation Schemas ---
 class BreachMode(str, Enum):
     OVERTOPPING = "OVERTOPPING"
     PIPING = "PIPING"
@@ -57,13 +91,42 @@ class SimulationRequest(BaseModel):
     engine_type: EngineType = EngineType.DELFT3D_FM
     breach_params: BreachParameters = Field(default_factory=BreachParameters)
 
+# --- HADR Input & Output Schemas ---
+class HadrInputParams(BaseModel):
+    estimated_valley_population: int = Field(default=120000, description="Downstream population residing in floodplain corridor")
+    critical_bridges_count: int = Field(default=4, description="Number of primary highway/rail bridges in path")
+    hospitals_and_clinics: int = Field(default=6, description="Medical facilities within potential inundation zone")
+    warning_lead_time_target_hr: float = Field(default=2.0, description="Minimum emergency evacuation lead time (hours)")
+    evacuation_safety_buffer_m: float = Field(default=12.0, description="Elevation height above flood crest for designated safe relief zones (m)")
+    relief_priority: str = Field(default="HIGH", description="Emergency alert level: ROUTINE, MODERATE, HIGH, EXTREME")
+
+class DemMetadata(BaseModel):
+    filename: str
+    file_size_kb: float
+    width_px: int
+    height_px: int
+    min_elevation_m: float
+    max_elevation_m: float
+    mean_elevation_m: float
+    crs_info: str = "WGS84 / UTM Zone (Georeferenced)"
+    resolution_m: float = 30.0
+
+class CustomDemSimulationRequest(BaseModel):
+    scenario_name: str = "Custom DEM Inundation Simulation"
+    dam_name: str = "Custom Dam Site"
+    dam_crest_elev_m: float = Field(default=660.0)
+    dam_height_m: float = Field(default=50.0)
+    reservoir_capacity_mcm: float = Field(default=1200.0)
+    engine_type: EngineType = EngineType.DELFT3D_FM
+    breach_params: BreachParameters = Field(default_factory=BreachParameters)
+    hadr_params: HadrInputParams = Field(default_factory=HadrInputParams)
+
 class SimulationStatus(BaseModel):
     id: str
     status: str = "COMPLETED"
     progress_percent: float = 100.0
     message: str = "Simulation completed successfully"
     mode: str = "MOCK"
-
 
 class FloodTimestep(BaseModel):
     time_hr: float
@@ -80,6 +143,10 @@ class ImpactAssetSummary(BaseModel):
     affected_villages: List[str]
     severed_bridges: List[str]
     safe_evacuation_centers: List[Dict[str, Any]]
+    # Enhanced HADR fields
+    evacuation_readiness_score_pct: Optional[float] = 88.0
+    emergency_shelter_deficit: Optional[int] = 0
+    priority_rescue_zones: Optional[List[str]] = None
 
 class SimulationResult(BaseModel):
     id: str
@@ -96,6 +163,9 @@ class SimulationResult(BaseModel):
     hydrograph: BreachHydrograph
     impact: ImpactAssetSummary
     created_at: str
+    user_id: Optional[str] = None
+    is_custom_dem: Optional[bool] = False
+    dem_metadata: Optional[DemMetadata] = None
 
 class ScenarioComparison(BaseModel):
     scenario_a_id: str

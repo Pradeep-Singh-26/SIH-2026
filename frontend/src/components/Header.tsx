@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box, Map, Download, Volume2, VolumeX, Maximize, Minimize,
-  HelpCircle, Sun, Moon, PanelLeftClose, PanelLeftOpen
+  HelpCircle, Sun, Moon, PanelLeftClose, PanelLeftOpen,
+  LogIn, LogOut, ChevronDown, ShieldCheck
 } from 'lucide-react';
 import { soundEffects } from '../services/soundEffects';
+import type { User } from '../types';
 
 interface HeaderProps {
   mode: string;
@@ -18,6 +20,10 @@ interface HeaderProps {
   onToggleTheme?: () => void;
   isDrawerOpen?: boolean;
   onToggleDrawer?: () => void;
+  // Auth props
+  user: User | null;
+  onOpenAuth: () => void;
+  onLogout: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -30,10 +36,15 @@ export const Header: React.FC<HeaderProps> = ({
   theme = 'light',
   onToggleTheme,
   isDrawerOpen,
-  onToggleDrawer
+  onToggleDrawer,
+  user,
+  onOpenAuth,
+  onLogout
 }) => {
   const [isMuted, setIsMuted] = useState<boolean>(soundEffects.isMuted());
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleFsChange = () => {
@@ -41,6 +52,16 @@ export const Header: React.FC<HeaderProps> = ({
     };
     document.addEventListener('fullscreenchange', handleFsChange);
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const toggleFullscreen = async () => {
@@ -62,6 +83,20 @@ export const Header: React.FC<HeaderProps> = ({
     if (!next) {
       soundEffects.playClickSound();
     }
+  };
+
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  };
+
+  const getAgencyAcronym = (agencyName: string) => {
+    if (agencyName.includes('NDMA')) return 'NDMA';
+    if (agencyName.includes('CWC')) return 'CWC';
+    if (agencyName.includes('SDMA')) return 'SDMA';
+    if (agencyName.includes('IMD')) return 'IMD';
+    return 'HYDRO';
   };
 
   return (
@@ -128,7 +163,7 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
       </div>
 
-      {/* Right: Status Pill, Primary Action & Compact Utility Group */}
+      {/* Right: Status Pill, Primary Action & User Profile Group */}
       <div className="nav-actions">
         {/* Mode Indicator Badge */}
         <div className={`mode-badge ${isDemoData ? 'mock' : 'real'}`}>
@@ -148,6 +183,76 @@ export const Header: React.FC<HeaderProps> = ({
           <Download size={15} />
           <span>Export GIS</span>
         </button>
+
+        {/* User Identity / Authentication Control */}
+        {user ? (
+          <div className="user-profile-widget" ref={userMenuRef}>
+            <button
+              className="user-profile-btn"
+              onClick={() => {
+                soundEffects.playClickSound();
+                setIsUserMenuOpen(!isUserMenuOpen);
+              }}
+              title="User Profile & Atlas Status"
+            >
+              <div className="user-avatar-circle">{getInitials(user.full_name)}</div>
+              <div className="user-info-brief">
+                <span className="user-name-label">{user.full_name.split(' ')[0]}</span>
+                <span className="user-agency-tag">{getAgencyAcronym(user.agency)}</span>
+              </div>
+              <ChevronDown size={14} className="user-chevron" />
+            </button>
+
+            {isUserMenuOpen && (
+              <div className="user-dropdown-menu">
+                <div className="user-dropdown-header">
+                  <div className="user-dropdown-name">{user.full_name}</div>
+                  <div className="user-dropdown-email">{user.email}</div>
+                  <div className="user-dropdown-role">
+                    <ShieldCheck size={13} style={{ color: 'var(--emerald-safe)' }} />
+                    <span>{user.role}</span>
+                  </div>
+                  <div className="user-dropdown-agency">{user.agency}</div>
+                </div>
+                <div className="user-dropdown-divider" />
+                <button
+                  className="user-dropdown-item"
+                  onClick={() => {
+                    soundEffects.playClickSound();
+                    setIsUserMenuOpen(false);
+                    onOpenAuth();
+                  }}
+                >
+                  <ShieldCheck size={14} style={{ color: 'var(--cyan-primary)' }} />
+                  <span>Account & Cloud Status</span>
+                </button>
+                <button
+                  className="user-dropdown-item logout"
+                  onClick={() => {
+                    soundEffects.playClickSound();
+                    onLogout();
+                    setIsUserMenuOpen(false);
+                  }}
+                >
+                  <LogOut size={14} />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <button
+            className="btn btn-secondary btn-signin"
+            onClick={() => {
+              soundEffects.playClickSound();
+              onOpenAuth();
+            }}
+            title="Sign in with Disaster Management Credentials"
+          >
+            <LogIn size={15} />
+            <span>Sign In</span>
+          </button>
+        )}
 
         <div className="nav-utility-group">
           {/* Light / Dark Mode Toggle Button */}
