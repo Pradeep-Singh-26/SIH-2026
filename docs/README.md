@@ -21,9 +21,10 @@ Whether you are an evaluator, hydrodynamic engineer, disaster management officia
 | [02_SYSTEM_ARCHITECTURE.md](./02_SYSTEM_ARCHITECTURE.md) | **System Architecture & Data Pipelines** | Detailed architectural diagrams, pipeline workflows, backend engine modules, and frontend GIS visualizers. |
 | [03_HYDRODYNAMIC_MODELS.md](./03_HYDRODYNAMIC_MODELS.md) | **Hydrodynamic Formulations & Physics** | Mathematical rigor: Froehlich breach equations, St. Venant 2D Shallow Water Equations (SWE), and DualSPHysics SPH Lagrangian formulations. |
 | [04_HADR_AND_DISASTER_MANAGEMENT.md](./04_HADR_AND_DISASTER_MANAGEMENT.md) | **HADR Protocols & Loss Estimation** | Disaster relief frameworks, casualty estimation formulas, infrastructure vulnerability matrices, relief camp zoning, and evacuation corridors. |
-| [05_API_REFERENCE.md](./05_API_REFERENCE.md) | **FastAPI REST API Specification** | Complete interactive API endpoints, request/response schemas, JSON payloads, and error codes. |
+| [05_API_REFERENCE.md](./05_API_REFERENCE.md) | **FastAPI REST API Specification** | Complete interactive API endpoints, request/response schemas, JSON payloads, and error codes (including JWT Auth & GeoTIFF Ingestion). |
 | [06_DOCKER_DEPLOYMENT.md](./06_DOCKER_DEPLOYMENT.md) | **Containerization & Docker Hub Guide** | Step-by-step instructions for running via Docker Compose, unified Dockerfile, and publishing to Docker Hub (`docker push`). |
-| [07_USER_MANUAL.md](./07_USER_MANUAL.md) | **Operator's Manual & User Guide** | Guided tour of the interactive dashboard: 2D GIS layer controls, 3D fluid wave surge, scenario comparison, and GIS data export. |
+| [07_USER_MANUAL.md](./07_USER_MANUAL.md) | **Operator's Manual & User Guide** | Guided tour of the interactive dashboard: User auth, GeoTIFF DEM upload, 2D GIS layer controls, 3D fluid wave surge, and GIS data export. |
+| [08_PITCH_DECK_AND_PRESENTATION_GUIDE.md](./08_PITCH_DECK_AND_PRESENTATION_GUIDE.md) | **Pitch Deck & Presentation Guide** | 13-slide pitch presentation blueprint, speaker scripts, visual layouts, jury Q&A defense, and AI prompt template. |
 
 ---
 
@@ -61,6 +62,8 @@ graph TD
 ```
 
 - **Dual-Engine Hydrodynamics**: Delft3D-FM 2D Shallow Water Equations for macro-catchment inundation + DualSPHysics SPH for micro-scale near-field hydrodynamic wave shock.
+- **Custom GeoTIFF (.tif) Ingestion**: Direct upload of arbitrary digital elevation models for flood simulation of any river reach in India.
+- **User Authentication & Cloud Sync**: Full-screen and modal signup/login with MongoDB Atlas cloud persistence and automatic offline JSON fallback.
 - **Parametric Breach Modeling**: Froehlich (2008) empirical breach width, side slope, and formation time computation.
 - **Automated HADR Impact Analytics**: Instant detection of submerged roads, critical bridges, hospitals, and high-ground relief camp allocation.
 - **Export Ready**: Instant generation of ESRI Shapefile zip archives, Google Earth KML files, and GeoJSON vectors.
