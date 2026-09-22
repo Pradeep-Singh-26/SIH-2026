@@ -214,7 +214,7 @@ export const ScenarioPanel: React.FC<ScenarioPanelProps> = ({
       </div>
 
       {/* 1-Click Scenario Preset Cards */}
-      <div className="panel-card">
+      <div className="panel-card tour-breach-conditions">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.55rem' }}>
           <div className="panel-title" style={{ fontSize: '0.82rem' }}>
             <Zap size={15} style={{ color: 'var(--amber-warn)' }} />

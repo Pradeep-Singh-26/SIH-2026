@@ -12,6 +12,7 @@
   "dependencies": {
     "@types/leaflet": "^1.9.22",
     "@types/three": "^0.185.4",
+    "driver.js": "^1.8.0",
     "geotiff": "^3.0.5",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.42.0",

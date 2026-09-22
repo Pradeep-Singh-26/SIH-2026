@@ -7,6 +7,8 @@ import { MapViewer } from './components/MapViewer';
 import { TimelineController } from './components/TimelineController';
 import { ImpactPanel } from './components/ImpactPanel';
 import { ToastContainer, type ToastMessage } from './components/Toast';
+import { OnboardingTour } from './components/OnboardingTour';
+import { FaqModal } from './components/FaqModal';
 
 // Code-split heavy visualizers, modals & full-page views to optimize initial bundle size
 const ThreeSphSimulation = lazy(() => import('./components/ThreeSphSimulation').then(m => ({ default: m.ThreeSphSimulation })));
@@ -51,6 +53,9 @@ export const App: React.FC = () => {
   const [isExportOpen, setIsExportOpen] = useState<boolean>(false);
   const [isGeeOpen, setIsGeeOpen] = useState<boolean>(false);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
+  const [isFaqOpen, setIsFaqOpen] = useState<boolean>(false);
+  const [runTour, setRunTour] = useState<boolean>(false);
+  const [showTourPrompt, setShowTourPrompt] = useState<boolean>(false);
 
   // Spacious Layout & Drawer State
   const [drawerTab, setDrawerTab] = useState<DrawerTab>('SCENARIO');
@@ -128,6 +133,12 @@ export const App: React.FC = () => {
         setCurrentTimestep(steps[0]);
       }
     }).catch(console.error);
+
+    // 5. Onboarding Check
+    const hasSeenTour = localStorage.getItem('hasSeenHydroTour');
+    if (!hasSeenTour) {
+      setShowTourPrompt(true);
+    }
   }, []);
 
   const handleRunSimulation = async (engine: EngineType, scenarioName: string, params: BreachParameters) => {
@@ -232,6 +243,12 @@ export const App: React.FC = () => {
         onViewChange={setActiveView}
         onOpenExport={() => setIsExportOpen(true)}
         onOpenGuide={() => setIsGuideOpen(true)}
+        onOpenTour={() => {
+          setIsGuideOpen(false);
+          setIsFaqOpen(false);
+          setRunTour(true);
+        }}
+        onOpenFaq={() => setIsFaqOpen(true)}
         theme={theme}
         onToggleTheme={toggleTheme}
         isDrawerOpen={isDrawerOpen}
@@ -406,7 +423,42 @@ export const App: React.FC = () => {
             onClose={() => setIsGuideOpen(false)}
           />
         )}
+
+        {isFaqOpen && (
+          <FaqModal
+            isOpen={isFaqOpen}
+            onClose={() => setIsFaqOpen(false)}
+          />
+        )}
       </Suspense>
+
+      {/* Onboarding & Prompts */}
+      <OnboardingTour 
+        run={runTour} 
+        onFinish={() => setRunTour(false)} 
+      />
+
+      {showTourPrompt && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: 400, textAlign: 'center' }}>
+            <h3 style={{ margin: '0 0 1rem 0', color: 'var(--cyan-primary)' }}>Welcome to Hydro-Breach</h3>
+            <p style={{ marginBottom: '1.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+              Would you like a quick walkthrough of the interface and its historical context before you begin?
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+              <button className="btn btn-secondary" onClick={() => {
+                localStorage.setItem('hasSeenHydroTour', 'true');
+                setShowTourPrompt(false);
+              }}>Skip</button>
+              <button className="btn btn-primary" onClick={() => {
+                localStorage.setItem('hasSeenHydroTour', 'true');
+                setShowTourPrompt(false);
+                setRunTour(true);
+              }}>Start Walkthrough</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Ephemeral Toast Notifications */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />

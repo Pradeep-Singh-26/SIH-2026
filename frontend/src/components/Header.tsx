@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Box, Map, Download, Volume2, VolumeX, Maximize, Minimize,
   HelpCircle, Sun, Moon, PanelLeftClose, PanelLeftOpen,
-  LogIn, LogOut, ChevronDown, ShieldCheck
+  LogIn, LogOut, ChevronDown, ShieldCheck, Compass, MessageCircleQuestion
 } from 'lucide-react';
 import { soundEffects } from '../services/soundEffects';
 import type { User } from '../types';
@@ -16,6 +16,8 @@ interface HeaderProps {
   onOpenGee?: () => void;
   onOpenExport: () => void;
   onOpenGuide: () => void;
+  onOpenTour?: () => void;
+  onOpenFaq?: () => void;
   theme?: 'light' | 'dark';
   onToggleTheme?: () => void;
   isDrawerOpen?: boolean;
@@ -33,6 +35,8 @@ export const Header: React.FC<HeaderProps> = ({
   onViewChange,
   onOpenExport,
   onOpenGuide,
+  onOpenTour,
+  onOpenFaq,
   theme = 'light',
   onToggleTheme,
   isDrawerOpen,
@@ -139,7 +143,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Center: Spacious View Switcher Pill */}
-      <div className="view-switcher-pill">
+      <div className="view-switcher-pill tour-view-switcher">
         <button
           className={`view-pill-btn ${activeView === '2D_GIS' ? 'active' : ''}`}
           onClick={() => {
@@ -290,6 +294,36 @@ export const Header: React.FC<HeaderProps> = ({
           >
             {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
           </button>
+
+          {/* Tour Toggle */}
+          {onOpenTour && (
+            <button
+              className="btn-icon"
+              onClick={() => {
+                soundEffects.playClickSound();
+                onOpenTour();
+              }}
+              title="Start Interactive Tour"
+              aria-label="Start Tour"
+            >
+              <Compass size={16} style={{ color: 'var(--cyan-primary)' }} />
+            </button>
+          )}
+
+          {/* FAQ Modal */}
+          {onOpenFaq && (
+            <button
+              className="btn-icon"
+              onClick={() => {
+                soundEffects.playClickSound();
+                onOpenFaq();
+              }}
+              title="FAQ & Settings Explanations"
+              aria-label="FAQ"
+            >
+              <MessageCircleQuestion size={16} style={{ color: 'var(--cyan-primary)' }} />
+            </button>
+          )}
 
           {/* System Guide / Quick Specs Modal */}
           <button

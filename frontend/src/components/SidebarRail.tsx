@@ -50,7 +50,7 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
       {/* Top Group: Primary Operational Panels */}
       <div className="rail-group">
         <button
-          className={`rail-btn ${isDrawerOpen && activeTab === 'SCENARIO' ? 'active' : ''}`}
+          className={`rail-btn tour-scenario-setup ${isDrawerOpen && activeTab === 'SCENARIO' ? 'active' : ''}`}
           onClick={() => handleTabClick('SCENARIO')}
           title="Breach Parameters & Scenario Setup"
           aria-label="Scenario Setup"
@@ -126,7 +126,7 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
         </button>
 
         <button
-          className="rail-btn"
+          className="rail-btn tour-export"
           onClick={() => {
             soundEffects.playClickSound();
             onOpenExport();

@@ -1128,7 +1128,7 @@ export const MapViewer: React.FC<MapViewerProps> = ({
 
       {/* Top Left HUD: Layer Switches & Base Map */}
       <div className="map-hud-top-left">
-        <div className="hud-panel layer-toggles">
+        <div className="hud-panel layer-toggles tour-map-layers">
           <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.2rem', fontWeight: 600 }}>
             Geospatial Overlays
           </div>
@@ -1279,7 +1279,7 @@ export const MapViewer: React.FC<MapViewerProps> = ({
             {showRiver ? <Eye size={14} /> : <EyeOff size={14} />}
           </div>
 
-          <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.4rem', marginTop: '0.2rem', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.2rem' }}>
+          <div className="tour-map-styles" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.4rem', marginTop: '0.2rem', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.2rem' }}>
             <button
               className={`btn ${baseMap === 'light' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ fontSize: '0.62rem', padding: '0.2rem 0.15rem', justifyContent: 'center' }}

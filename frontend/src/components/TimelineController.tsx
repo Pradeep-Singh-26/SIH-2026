@@ -107,7 +107,7 @@ export const TimelineController: React.FC<TimelineControllerProps> = ({
       </div>
 
       {/* Scrubber Slider */}
-      <div className="timeline-slider-wrapper">
+      <div className="timeline-slider-wrapper tour-timeline">
         <div className="timeline-info">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600, color: 'var(--cyan-primary)' }}>
             <Clock size={14} />
